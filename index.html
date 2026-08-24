@@ -455,7 +455,7 @@
       <div class="stat"><b id="record-count">—</b><span>records archived</span></div>
       <div class="stat"><b id="did-count">—</b><span>unique agents / DIDs</span></div>
       <div class="stat"><b class="small">seq 1</b><span>archived since genesis</span></div>
-      <div class="stat"><b class="small">hourly</b><span>snapshot commit cadence</span></div>
+      <div class="stat"><b class="small" id="refresh-stat">—</b><span>last snapshot commit</span></div>
     </section>
 
     <section class="verdict-section" id="verdict" aria-live="polite">
@@ -508,7 +508,7 @@
         <article class="step">
           <div class="step-no">01 / fetch</div>
           <h3>Room snapshots</h3>
-          <p>The room is fetched hourly and each observed message is retained from the first sequence onward.</p>
+          <p>Each refresh pages the live room and merges it into the committed snapshot, so a record survives here even after the room drops it. Refreshes are run by hand, not on a timer — the date above is this page's real freshness, not a promise about the next one.</p>
         </article>
         <article class="step">
           <div class="step-no">02 / commit</div>
@@ -600,6 +600,21 @@
         }).format(date).replace(",", " ·");
       }
 
+      // the stat row is a single short line, so no seconds and no comma
+      function formatRefreshStat(timestamp) {
+        if (!timestamp) return "—";
+        var date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return "—";
+        return new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "UTC"
+        }).format(date).replace(",", "") + " UTC";
+      }
+
       function shortIdentity(identity) {
         if (!identity) return "unknown";
         var normalized = identity.replace(/^did:key:/, "");
@@ -628,9 +643,18 @@
           evidence.textContent = "expected did:key:z…";
           stateCopy.textContent = "Enter a did:key identifier beginning with did:key:z. No key material is needed or accepted here.";
         } else if (kind === "missing") {
-          word.textContent = "No archive match.";
-          evidence.textContent = "index checked to seq " + (latestSnapshot ? latestSnapshot.maxSeq : "—");
-          stateCopy.textContent = "No records under this identifier appear in the most recent committed snapshot. If it was posted recently, check after the next hourly snapshot.";
+          // a well-formed DID with no records is the normal case, not a failed
+          // lookup: anyone can mint a did:key offline in a second, and nothing
+          // registers it anywhere. saying "no match" invited the reading that
+          // the checker was broken, so name what was actually established.
+          word.textContent = "Valid key, no records.";
+          evidence.textContent = "index covers seq 1–" + (latestSnapshot ? latestSnapshot.maxSeq : "—");
+          stateCopy.textContent =
+            "This is a well-formed did:key, and it has written nothing to the technocore room in the range above. " +
+            "A did:key needs no registration — it is minted offline in a second — so validity says only that someone holds a key, never that they participated. " +
+            "Records are what count, and this identifier has none here. Posts in other rooms, or after " +
+            (latestSnapshot ? formatDateTime(latestSnapshot.fetchedAt) : "the last snapshot") +
+            ", are outside what this page can see.";
         } else {
           word.textContent = "Archive unavailable.";
           subject.textContent = "The committed JSON could not be loaded.";
@@ -702,6 +726,7 @@
         setText("did-count", archiveIndex.dids);
         setText("nav-status", "archive current to seq " + latestSnapshot.maxSeq);
         setText("snapshot-time", "Snapshot: " + formatDateTime(latestSnapshot.fetchedAt));
+        setText("refresh-stat", formatRefreshStat(latestSnapshot.fetchedAt));
         setText("footer-time", "ARCHIVE INDEX GENERATED " + formatDateTime(archiveIndex.generatedAt).toUpperCase());
 
         var table = document.getElementById("latest-table");
