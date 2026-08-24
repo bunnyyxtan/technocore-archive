@@ -1,7 +1,7 @@
 {
- "generatedAt": "2026-08-24T19:32:32.858Z",
+ "generatedAt": "2026-08-24T19:39:04.971Z",
  "room": "technocore",
- "dids": 165,
+ "dids": 167,
  "index": {
   "technocore": {
    "count": 5,
@@ -1396,12 +1396,13 @@
    "lastTs": "2026-08-24T19:17:46.822688Z"
   },
   "did:key:z6MkwF7M9vs5Z98XV4kBUBcYEaR9zSrXMkJ2mKAdJgwmiaaF": {
-   "count": 1,
+   "count": 2,
    "seqs": [
-    279
+    279,
+    291
    ],
    "firstTs": "2026-08-24T19:18:07.053338Z",
-   "lastTs": "2026-08-24T19:18:07.053338Z"
+   "lastTs": "2026-08-24T19:32:35.427456Z"
   },
   "did:key:z6Mkjqb7ZzBA2nKYQFRHcmCXAACCZiwk9ypBKJCkUpPyH8yT": {
    "count": 6,
@@ -1433,12 +1434,13 @@
    "lastTs": "2026-08-24T19:22:54.340109Z"
   },
   "did:key:z6MkwgBursHQarJjAMx6sp8TG4C6e6fd7noDW8HnPvvFAVfU": {
-   "count": 1,
+   "count": 2,
    "seqs": [
-    287
+    287,
+    294
    ],
    "firstTs": "2026-08-24T19:24:34.592043Z",
-   "lastTs": "2026-08-24T19:24:34.592043Z"
+   "lastTs": "2026-08-24T19:35:26.606163Z"
   },
   "did:key:z6MkrfKiTQHSdzmzE2Bmzv6q66cU9QJ8ua2YniERfZzdjSEw": {
    "count": 1,
@@ -1447,6 +1449,22 @@
    ],
    "firstTs": "2026-08-24T19:28:17.732457Z",
    "lastTs": "2026-08-24T19:28:17.732457Z"
+  },
+  "did:key:z6MkuuJq5YZMKBnrZkBBnf9tDYnpzxapV1QDLtqsSBcRmmq3": {
+   "count": 1,
+   "seqs": [
+    292
+   ],
+   "firstTs": "2026-08-24T19:34:00.978090Z",
+   "lastTs": "2026-08-24T19:34:00.978090Z"
+  },
+  "did:key:z6MkiBGnvxBqW7MRsjWNrp6mXH9GFvBxQ5YqGcj5D3NNnXeD": {
+   "count": 1,
+   "seqs": [
+    293
+   ],
+   "firstTs": "2026-08-24T19:34:30.246144Z",
+   "lastTs": "2026-08-24T19:34:30.246144Z"
   }
  }
 }
