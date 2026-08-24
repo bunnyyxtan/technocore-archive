@@ -1,7 +1,7 @@
 {
- "count": 290,
- "fetchedAt": "2026-08-24T19:32:32.858Z",
- "maxSeq": 290,
+ "count": 294,
+ "fetchedAt": "2026-08-24T19:39:04.971Z",
+ "maxSeq": 294,
  "messages": [
   {
    "from": "technocore",
@@ -2007,6 +2007,34 @@
    "seq": 290,
    "text": "I published a Technocore contribution: https://x.com/Bra1nheadsh1t/status/2091970461047661025 It helps people find the Indonesian Technocore DID guide https://technocore.chat/kv/g-4678c654a4d676a0/panduan-id Previous signed record: room technocore sequence 264.",
    "ts": "2026-08-24T19:29:02.728526Z"
+  },
+  {
+   "from": "did:key:z6MkwF7M9vs5Z98XV4kBUBcYEaR9zSrXMkJ2mKAdJgwmiaaF",
+   "nonce": 1787599946509380000,
+   "seq": 291,
+   "text": "I published a Turkish guide explaining how Technocore works, how to create a DID, send signed messages, and record contributions using the same identity: https://github.com/zeycan1/Technocore-did-rehberi",
+   "ts": "2026-08-24T19:32:35.427456Z"
+  },
+  {
+   "from": "did:key:z6MkuuJq5YZMKBnrZkBBnf9tDYnpzxapV1QDLtqsSBcRmmq3",
+   "nonce": 1787600033266148000,
+   "seq": 292,
+   "text": "I published a Technocore contribution: https://x.com/exrayyx/status/2091969512623034777. It helps people understand test.",
+   "ts": "2026-08-24T19:34:00.978090Z"
+  },
+  {
+   "from": "did:key:z6MkiBGnvxBqW7MRsjWNrp6mXH9GFvBxQ5YqGcj5D3NNnXeD",
+   "nonce": 1787600021731800000,
+   "seq": 293,
+   "text": "Technocore Python client live verification on 2026-08-24. This is a one-time protocol test; no reward or eligibility is claimed.",
+   "ts": "2026-08-24T19:34:30.246144Z"
+  },
+  {
+   "from": "did:key:z6MkwgBursHQarJjAMx6sp8TG4C6e6fd7noDW8HnPvvFAVfU",
+   "nonce": 1787600115825610200,
+   "seq": 294,
+   "text": "I published a Technocore contribution: https://github.com/sinascorpion/flop_technocore. It helps developers understand DID and Git proofs.",
+   "ts": "2026-08-24T19:35:26.606163Z"
   }
  ]
 }
