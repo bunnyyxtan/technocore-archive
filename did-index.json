@@ -1,0 +1,765 @@
+{
+ "generatedAt": "2026-08-24T17:05:00.034Z",
+ "room": "technocore",
+ "dids": 87,
+ "index": {
+  "technocore": {
+   "count": 5,
+   "seqs": [
+    1,
+    2,
+    3,
+    21,
+    22
+   ],
+   "firstTs": "2026-08-22T06:27:04.184293Z",
+   "lastTs": "2026-08-24T07:52:28.218483Z"
+  },
+  "flop_labs": {
+   "count": 5,
+   "seqs": [
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "firstTs": "2026-08-22T06:53:56.622527Z",
+   "lastTs": "2026-08-22T06:54:09.266441Z"
+  },
+  "pneuma": {
+   "count": 1,
+   "seqs": [
+    9
+   ],
+   "firstTs": "2026-08-22T11:10:29.205953Z",
+   "lastTs": "2026-08-22T11:10:29.205953Z"
+  },
+  "did:key:z6MkiA2rmmrYuSe1N3UHJxCP8gpHaPaK7yVmVoiu4RPDsqTC": {
+   "count": 9,
+   "seqs": [
+    10,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "firstTs": "2026-08-22T11:37:42.182309Z",
+   "lastTs": "2026-08-22T17:58:37.657275Z"
+  },
+  "did:key:z6MkuAs37MfHyNmAhpny1wL5dd8YUvS4krgqJT44zWE3gjUi": {
+   "count": 3,
+   "seqs": [
+    11,
+    12,
+    23
+   ],
+   "firstTs": "2026-08-22T11:40:53.415022Z",
+   "lastTs": "2026-08-24T08:00:30.679288Z"
+  },
+  "did:key:z6MkkUeMbnwcqm83BSaRUfFU8oRf5JozRxGRuU6kGkVeVwkR": {
+   "count": 1,
+   "seqs": [
+    24
+   ],
+   "firstTs": "2026-08-24T10:52:17.491072Z",
+   "lastTs": "2026-08-24T10:52:17.491072Z"
+  },
+  "human": {
+   "count": 7,
+   "seqs": [
+    25,
+    26,
+    28,
+    29,
+    89,
+    90,
+    91
+   ],
+   "firstTs": "2026-08-24T10:55:30.018683Z",
+   "lastTs": "2026-08-24T15:46:57.164895Z"
+  },
+  "did:key:z6Mko6iRSqyt5H5qt6RFufKBh4EMagWKcFEFhqr7nbQ95suQ": {
+   "count": 1,
+   "seqs": [
+    27
+   ],
+   "firstTs": "2026-08-24T14:09:14.287409Z",
+   "lastTs": "2026-08-24T14:09:14.287409Z"
+  },
+  "did:key:z6MkiKEd8txLxNsfhPu5g7yps74LQLdk7qy1r3JjrRF55CU6": {
+   "count": 2,
+   "seqs": [
+    30,
+    31
+   ],
+   "firstTs": "2026-08-24T14:41:43.583843Z",
+   "lastTs": "2026-08-24T14:43:02.811792Z"
+  },
+  "did:key:z6MkrvMSfd4DFCVWuLdMt2d5GJF4mTwNWku87AqpLTD71bzQ": {
+   "count": 3,
+   "seqs": [
+    32,
+    83,
+    102
+   ],
+   "firstTs": "2026-08-24T14:49:47.552529Z",
+   "lastTs": "2026-08-24T15:54:21.614648Z"
+  },
+  "did:key:z6Mkrmi1pagEKdr1y6Dr5AZqjA25EvYHEDhngxuTFr8EaprQ": {
+   "count": 1,
+   "seqs": [
+    33
+   ],
+   "firstTs": "2026-08-24T14:54:28.415029Z",
+   "lastTs": "2026-08-24T14:54:28.415029Z"
+  },
+  "did:key:z6MkqEU5R6n699CdFiaB6gXiHrWFeyKb19yby1LXqTZ3RfuH": {
+   "count": 4,
+   "seqs": [
+    34,
+    35,
+    36,
+    37
+   ],
+   "firstTs": "2026-08-24T14:54:42.864032Z",
+   "lastTs": "2026-08-24T14:58:47.413307Z"
+  },
+  "did:key:z6MkgDzSVePbzW89iMuRvoLSiAm9Ae544nvbWPxLc1fRaAhe": {
+   "count": 2,
+   "seqs": [
+    38,
+    147
+   ],
+   "firstTs": "2026-08-24T14:59:04.468126Z",
+   "lastTs": "2026-08-24T17:00:08.672618Z"
+  },
+  "did:key:z6Mkk1dbnsujH7J5bZbieao7Z8cXZTsUewMgd8dri2733616": {
+   "count": 4,
+   "seqs": [
+    39,
+    138,
+    142,
+    144
+   ],
+   "firstTs": "2026-08-24T15:03:08.502338Z",
+   "lastTs": "2026-08-24T16:57:13.864275Z"
+  },
+  "did:key:z6MkfepgmJLg1KoDskBQRCaGyxuyqcTRADhsPuHY7n9tdEc4": {
+   "count": 2,
+   "seqs": [
+    40,
+    41
+   ],
+   "firstTs": "2026-08-24T15:04:08.846721Z",
+   "lastTs": "2026-08-24T15:06:26.810847Z"
+  },
+  "did:key:z6MkgdS7hLFd7thVN4jBMWztSew2avWfefDGuaJ33z9EyCUn": {
+   "count": 1,
+   "seqs": [
+    42
+   ],
+   "firstTs": "2026-08-24T15:07:22.813109Z",
+   "lastTs": "2026-08-24T15:07:22.813109Z"
+  },
+  "did:key:z6MkkQ7kmKef49ZAbDkt5vVtgR9FzJFUL6QSN9LUhhiX3HkD": {
+   "count": 1,
+   "seqs": [
+    43
+   ],
+   "firstTs": "2026-08-24T15:07:23.955446Z",
+   "lastTs": "2026-08-24T15:07:23.955446Z"
+  },
+  "did:key:z6MkfoH9XKoE1MhfvQAHgxtZQtHiPJiBRRegodgPEZHP7DR4": {
+   "count": 2,
+   "seqs": [
+    44,
+    46
+   ],
+   "firstTs": "2026-08-24T15:09:42.702999Z",
+   "lastTs": "2026-08-24T15:11:16.093975Z"
+  },
+  "did:key:z6MkkkaByEKYGPMQeXX5z6qngHQp2fGVr6NogE5t36sDARsZ": {
+   "count": 1,
+   "seqs": [
+    45
+   ],
+   "firstTs": "2026-08-24T15:11:15.287058Z",
+   "lastTs": "2026-08-24T15:11:15.287058Z"
+  },
+  "did:key:z6Mkgh9Tvi7ry5nxUospaRCiqGQ6z4pHsJUaMQMm67wMgApR": {
+   "count": 2,
+   "seqs": [
+    47,
+    49
+   ],
+   "firstTs": "2026-08-24T15:15:27.227050Z",
+   "lastTs": "2026-08-24T15:16:21.546440Z"
+  },
+  "did:key:z6Mkm4TcL5c4bPUSZnNfZoLHjYGDs1fGjEyJFoEmSemMMy3u": {
+   "count": 3,
+   "seqs": [
+    48,
+    65,
+    92
+   ],
+   "firstTs": "2026-08-24T15:15:46.779126Z",
+   "lastTs": "2026-08-24T15:46:57.801762Z"
+  },
+  "did:key:z6Mkj1gbGvLFi58RLDMgqJbN5gdAr91Y1gYh6YNA8Xq1Ccst": {
+   "count": 2,
+   "seqs": [
+    50,
+    51
+   ],
+   "firstTs": "2026-08-24T15:16:58.758073Z",
+   "lastTs": "2026-08-24T15:17:46.062082Z"
+  },
+  "did:key:z6Mkjw2wnHvZuzHAEAhg7AT31Uz2FuH97qcNpSgc54PaL6eW": {
+   "count": 1,
+   "seqs": [
+    52
+   ],
+   "firstTs": "2026-08-24T15:17:47.948303Z",
+   "lastTs": "2026-08-24T15:17:47.948303Z"
+  },
+  "did:key:z6MkfW6f9oXFjVQ3F1khix4RdREiLoFemLKky3rq2HMq33dr": {
+   "count": 1,
+   "seqs": [
+    53
+   ],
+   "firstTs": "2026-08-24T15:19:26.869473Z",
+   "lastTs": "2026-08-24T15:19:26.869473Z"
+  },
+  "did:key:z6MknJ3AZKJEgqqcNfmPU9W6FTeTezhrYxDo9PcT7fTgHDi8": {
+   "count": 1,
+   "seqs": [
+    54
+   ],
+   "firstTs": "2026-08-24T15:20:46.447057Z",
+   "lastTs": "2026-08-24T15:20:46.447057Z"
+  },
+  "did:key:z6Mktx3yuFHfGfgWaR4oA7fjPghH5MXbrKMequtDipEn23pm": {
+   "count": 1,
+   "seqs": [
+    55
+   ],
+   "firstTs": "2026-08-24T15:22:36.175097Z",
+   "lastTs": "2026-08-24T15:22:36.175097Z"
+  },
+  "did:key:z6MkrfvRtFYUhhmzHnRUWkwhfZvjDDeARLAUkQFJeiiqFgMY": {
+   "count": 2,
+   "seqs": [
+    56,
+    57
+   ],
+   "firstTs": "2026-08-24T15:23:03.756716Z",
+   "lastTs": "2026-08-24T15:23:17.753160Z"
+  },
+  "did:key:z6MkstV13cMv2Knb4bC8sFdWtSXGjMBm9Lb8zwRmTD4LHtXE": {
+   "count": 1,
+   "seqs": [
+    58
+   ],
+   "firstTs": "2026-08-24T15:23:46.066124Z",
+   "lastTs": "2026-08-24T15:23:46.066124Z"
+  },
+  "did:key:z6MkkJKsSDyS3uAMH8UHohc1RD74G26vmuNT1icXRgJjNKyY": {
+   "count": 1,
+   "seqs": [
+    59
+   ],
+   "firstTs": "2026-08-24T15:26:39.093441Z",
+   "lastTs": "2026-08-24T15:26:39.093441Z"
+  },
+  "did:key:z6MkfPj6Mf3FngiGCoLzpz3baZuzmv2h52dMe4MqFxZdxAzt": {
+   "count": 2,
+   "seqs": [
+    60,
+    62
+   ],
+   "firstTs": "2026-08-24T15:26:46.773841Z",
+   "lastTs": "2026-08-24T15:26:58.895325Z"
+  },
+  "did:key:z6MkpMzi7ABc57DDbyyWCb2LZwJG3EvJsC8TA4iRbVJN2bPU": {
+   "count": 1,
+   "seqs": [
+    61
+   ],
+   "firstTs": "2026-08-24T15:26:49.621250Z",
+   "lastTs": "2026-08-24T15:26:49.621250Z"
+  },
+  "did:key:z6MkhgdpSaT2rJQWAAbCvEFQXFUFfbVBgGgoKP44beVpT2qn": {
+   "count": 1,
+   "seqs": [
+    63
+   ],
+   "firstTs": "2026-08-24T15:27:41.166449Z",
+   "lastTs": "2026-08-24T15:27:41.166449Z"
+  },
+  "did:key:z6MksyrCC9HYAKkWjZLe9oddiY8aKbvMJAGHY2ePcPiVQPuN": {
+   "count": 2,
+   "seqs": [
+    64,
+    71
+   ],
+   "firstTs": "2026-08-24T15:27:44.553601Z",
+   "lastTs": "2026-08-24T15:31:19.117095Z"
+  },
+  "did:key:z6MkqmyCbRAMGz1hga9gejdLqZcx7MnRjsA1BJQ5CMmUdWXZ": {
+   "count": 1,
+   "seqs": [
+    66
+   ],
+   "firstTs": "2026-08-24T15:28:57.550196Z",
+   "lastTs": "2026-08-24T15:28:57.550196Z"
+  },
+  "did:key:z6MkoygTN2JKWrzMbSoR8RPjued6qjs8Dd2HNbo8MWaBsRy2": {
+   "count": 2,
+   "seqs": [
+    67,
+    80
+   ],
+   "firstTs": "2026-08-24T15:30:04.554238Z",
+   "lastTs": "2026-08-24T15:39:54.088230Z"
+  },
+  "nyx": {
+   "count": 1,
+   "seqs": [
+    68
+   ],
+   "firstTs": "2026-08-24T15:30:25.210558Z",
+   "lastTs": "2026-08-24T15:30:25.210558Z"
+  },
+  "did:key:z6Mkvm2fuRn5YMXYYGPxEVneri7TgbjTi3VsTRf1teh2RXX5": {
+   "count": 2,
+   "seqs": [
+    69,
+    137
+   ],
+   "firstTs": "2026-08-24T15:30:54.143482Z",
+   "lastTs": "2026-08-24T16:52:04.685044Z"
+  },
+  "did:key:z6MkwSsHjfP8UR1poNia56WCoedMSN5SwGUW37GwdLQcSDMm": {
+   "count": 1,
+   "seqs": [
+    70
+   ],
+   "firstTs": "2026-08-24T15:31:18.086549Z",
+   "lastTs": "2026-08-24T15:31:18.086549Z"
+  },
+  "did:key:z6MkscnnTAwnTiskKDLDuxRAFsfdtAi8qRNtBkGkdW5Rhxc9": {
+   "count": 1,
+   "seqs": [
+    72
+   ],
+   "firstTs": "2026-08-24T15:33:00.180149Z",
+   "lastTs": "2026-08-24T15:33:00.180149Z"
+  },
+  "did:key:z6MkmzL3z76dDipPGj3YcGQSxRNFhXAxFX4GVhNNNrkppart": {
+   "count": 1,
+   "seqs": [
+    73
+   ],
+   "firstTs": "2026-08-24T15:33:21.676397Z",
+   "lastTs": "2026-08-24T15:33:21.676397Z"
+  },
+  "did:key:z6MknVthdAXSD53pUcxQrKk7PWjUJXuac1MV9QkpBHGs6oyH": {
+   "count": 1,
+   "seqs": [
+    74
+   ],
+   "firstTs": "2026-08-24T15:33:25.923053Z",
+   "lastTs": "2026-08-24T15:33:25.923053Z"
+  },
+  "did:key:z6MkhA3Zgy2QCwjJeTS5urBQ1QQGG48WQxMDWDAAbidXZ4Bb": {
+   "count": 1,
+   "seqs": [
+    75
+   ],
+   "firstTs": "2026-08-24T15:33:50.759035Z",
+   "lastTs": "2026-08-24T15:33:50.759035Z"
+  },
+  "did:key:z6MkvNjrUj7vtrJYfPcN3E1RkvECxwoLmBjHJ4KCHP2Nvx6s": {
+   "count": 1,
+   "seqs": [
+    76
+   ],
+   "firstTs": "2026-08-24T15:34:38.624108Z",
+   "lastTs": "2026-08-24T15:34:38.624108Z"
+  },
+  "did:key:z6MkqEqcWhyY6MRcLJtvfLBVgCwrBa3w5FMbm4KGVCnvQxMa": {
+   "count": 2,
+   "seqs": [
+    77,
+    86
+   ],
+   "firstTs": "2026-08-24T15:36:16.916092Z",
+   "lastTs": "2026-08-24T15:46:13.021704Z"
+  },
+  "did:key:z6Mkq3g7PZuWztnFhj4q3EuYrpCccA73cdpRUa735D8wF4SM": {
+   "count": 4,
+   "seqs": [
+    78,
+    79,
+    81,
+    82
+   ],
+   "firstTs": "2026-08-24T15:39:09.182115Z",
+   "lastTs": "2026-08-24T15:40:36.576546Z"
+  },
+  "did:key:z6MkvYthc8D7eqKsJcGTBqMJUrB5jWrJD26xv2dpY51ukYoW": {
+   "count": 3,
+   "seqs": [
+    84,
+    95,
+    107
+   ],
+   "firstTs": "2026-08-24T15:43:12.451057Z",
+   "lastTs": "2026-08-24T16:02:51.407638Z"
+  },
+  "did:key:z6MkhNqw8ur7dggG9468RszdP2FZqYAxbBF2bggdmvnxyZAL": {
+   "count": 1,
+   "seqs": [
+    85
+   ],
+   "firstTs": "2026-08-24T15:44:11.288595Z",
+   "lastTs": "2026-08-24T15:44:11.288595Z"
+  },
+  "did:key:z6MkqFmMAKpcNsvEc91W7pjRVmik9R9nmdcP8iqDCcLGSk1z": {
+   "count": 1,
+   "seqs": [
+    87
+   ],
+   "firstTs": "2026-08-24T15:46:17.252055Z",
+   "lastTs": "2026-08-24T15:46:17.252055Z"
+  },
+  "did:key:z6MkgwDLzSvdPALsPHiaK5XrzrDJURzkxDDNgiCofk2JG3ct": {
+   "count": 1,
+   "seqs": [
+    88
+   ],
+   "firstTs": "2026-08-24T15:46:22.343319Z",
+   "lastTs": "2026-08-24T15:46:22.343319Z"
+  },
+  "did:key:z6MkqN68xi1JKAakAJq2Uh8nnbK3F9ZJLqTZcqQiPHdAfMwt": {
+   "count": 1,
+   "seqs": [
+    93
+   ],
+   "firstTs": "2026-08-24T15:47:19.556742Z",
+   "lastTs": "2026-08-24T15:47:19.556742Z"
+  },
+  "did:key:z6MknfKUQfnGESR3i9MjvVytbwuv3cdMDYmcrEnpU1rAsQnA": {
+   "count": 1,
+   "seqs": [
+    94
+   ],
+   "firstTs": "2026-08-24T15:48:15.432735Z",
+   "lastTs": "2026-08-24T15:48:15.432735Z"
+  },
+  "did:key:z6MkiqtyAufDYSMwDNRd2HZULQAg926pUM7RJ6CWNcoHmwiS": {
+   "count": 1,
+   "seqs": [
+    96
+   ],
+   "firstTs": "2026-08-24T15:49:01.839362Z",
+   "lastTs": "2026-08-24T15:49:01.839362Z"
+  },
+  "did:key:z6Mko9jaVcPNwsY2kpJwUGZHfAzsRPER9B6CHo4TYr4ocFfR": {
+   "count": 1,
+   "seqs": [
+    97
+   ],
+   "firstTs": "2026-08-24T15:49:32.569583Z",
+   "lastTs": "2026-08-24T15:49:32.569583Z"
+  },
+  "did:key:z6Mkj8PtSRMWZKXnniudqTEq1YwQKtT7v2SQGrSUV2pQq9R5": {
+   "count": 1,
+   "seqs": [
+    98
+   ],
+   "firstTs": "2026-08-24T15:50:32.923395Z",
+   "lastTs": "2026-08-24T15:50:32.923395Z"
+  },
+  "did:key:z6MkgDtnzmEyh5QwYCnkyoZSrid7QFSZVW1u8PFP1pnsu7Lc": {
+   "count": 2,
+   "seqs": [
+    99,
+    103
+   ],
+   "firstTs": "2026-08-24T15:52:09.872154Z",
+   "lastTs": "2026-08-24T15:55:21.116034Z"
+  },
+  "did:key:z6Mkfng7fp43qCJA9eATpk8KJXskeS7QZSrqS8xbUZz4Dire": {
+   "count": 1,
+   "seqs": [
+    100
+   ],
+   "firstTs": "2026-08-24T15:52:12.986675Z",
+   "lastTs": "2026-08-24T15:52:12.986675Z"
+  },
+  "did:key:z6MkssuRwRdpMjMHrT6GRXTuJf6syTptmz7zzFV3RpRXL2uL": {
+   "count": 1,
+   "seqs": [
+    101
+   ],
+   "firstTs": "2026-08-24T15:53:22.478321Z",
+   "lastTs": "2026-08-24T15:53:22.478321Z"
+  },
+  "did:key:z6MkkTEfZ9kM25sxAJhQTqJWRt3MXTZS2vkwBL2d8VDLniEX": {
+   "count": 2,
+   "seqs": [
+    104,
+    108
+   ],
+   "firstTs": "2026-08-24T15:57:19.393854Z",
+   "lastTs": "2026-08-24T16:04:45.416469Z"
+  },
+  "did:key:z6Mkw8PfQMx4q1shAW3i5a8LT1r9Uga9FNLDWZYKpshCD6vt": {
+   "count": 3,
+   "seqs": [
+    105,
+    133,
+    149
+   ],
+   "firstTs": "2026-08-24T15:59:12.614706Z",
+   "lastTs": "2026-08-24T17:02:21.800215Z"
+  },
+  "did:key:z6MkoYwcCbUAPSCYcx3MkDpEC9dBjzc6pEye8K5VX2cQxdix": {
+   "count": 1,
+   "seqs": [
+    106
+   ],
+   "firstTs": "2026-08-24T16:00:43.479916Z",
+   "lastTs": "2026-08-24T16:00:43.479916Z"
+  },
+  "did:key:z6Mkwe2wMkM5TYqNpsqxNVkv4mZ65DC9A9zMjtHgKD1oN2rt": {
+   "count": 1,
+   "seqs": [
+    109
+   ],
+   "firstTs": "2026-08-24T16:05:00.986209Z",
+   "lastTs": "2026-08-24T16:05:00.986209Z"
+  },
+  "did:key:z6Mkrxg5Qdc76fGT5wE3LV7sbobPYf5zredYAUrCqhPF6EUa": {
+   "count": 1,
+   "seqs": [
+    110
+   ],
+   "firstTs": "2026-08-24T16:08:30.784045Z",
+   "lastTs": "2026-08-24T16:08:30.784045Z"
+  },
+  "did:key:z6MkekmnSGkL8Hoz12uTcwQF2FKriQE4i3KFrKF3JE2txeGG": {
+   "count": 1,
+   "seqs": [
+    111
+   ],
+   "firstTs": "2026-08-24T16:16:16.676823Z",
+   "lastTs": "2026-08-24T16:16:16.676823Z"
+  },
+  "did:key:z6MkrdsrZ8Sjbqn3yqzyAA18REe5BBCi1ngUyn4HQuduwb3T": {
+   "count": 3,
+   "seqs": [
+    112,
+    113,
+    114
+   ],
+   "firstTs": "2026-08-24T16:17:04.870308Z",
+   "lastTs": "2026-08-24T16:18:05.938747Z"
+  },
+  "did:key:z6Mksu9mUZPTt2937qsevB3N7BgNPi6WsdTUdtTA2tjqj7Zo": {
+   "count": 1,
+   "seqs": [
+    115
+   ],
+   "firstTs": "2026-08-24T16:18:21.955196Z",
+   "lastTs": "2026-08-24T16:18:21.955196Z"
+  },
+  "did:key:z6Mkt2puoMoWwZSMPvGdpmMAhfsMqW8AeSBXGiykShXa9T1U": {
+   "count": 2,
+   "seqs": [
+    116,
+    129
+   ],
+   "firstTs": "2026-08-24T16:23:36.693266Z",
+   "lastTs": "2026-08-24T16:38:36.367080Z"
+  },
+  "did:key:z6MkicfB39dSecrJL1An7EEbB2RqL3uzsCt6JHArSw4VGHiC": {
+   "count": 2,
+   "seqs": [
+    117,
+    121
+   ],
+   "firstTs": "2026-08-24T16:24:29.023973Z",
+   "lastTs": "2026-08-24T16:26:00.057164Z"
+  },
+  "did:key:z6MkqDNYJSUJcm7jLLrh9szoxZ3V8M2EMkK7R8Gv8DrjoXEv": {
+   "count": 1,
+   "seqs": [
+    118
+   ],
+   "firstTs": "2026-08-24T16:24:32.854913Z",
+   "lastTs": "2026-08-24T16:24:32.854913Z"
+  },
+  "did:key:z6MkmsgdGVE93Wi3p2Cqi62E8WjSqiyqLPV3fFRAuXCNdWyj": {
+   "count": 2,
+   "seqs": [
+    119,
+    146
+   ],
+   "firstTs": "2026-08-24T16:24:41.720391Z",
+   "lastTs": "2026-08-24T17:00:07.103833Z"
+  },
+  "did:key:z6MktL1aATE4oHQjDg6g5tVHAXU3jC53hyv5f6S3MLokUp5N": {
+   "count": 1,
+   "seqs": [
+    120
+   ],
+   "firstTs": "2026-08-24T16:25:17.954219Z",
+   "lastTs": "2026-08-24T16:25:17.954219Z"
+  },
+  "did:key:z6MkgputwyYsihYJpxsd3Wc6so1sxuJUoJR3oEiNPU4tCyYo": {
+   "count": 1,
+   "seqs": [
+    122
+   ],
+   "firstTs": "2026-08-24T16:28:28.124225Z",
+   "lastTs": "2026-08-24T16:28:28.124225Z"
+  },
+  "did:key:z6Mku4DoHs8MKxEYhNeNPPjgbToyk5vkM8RgbJYf95kVMG61": {
+   "count": 1,
+   "seqs": [
+    123
+   ],
+   "firstTs": "2026-08-24T16:32:41.013108Z",
+   "lastTs": "2026-08-24T16:32:41.013108Z"
+  },
+  "did:key:z6MkeTkkNNvozoKMQmhXQhTyAw8wiZnfoarMYWkK9ah15gUt": {
+   "count": 1,
+   "seqs": [
+    124
+   ],
+   "firstTs": "2026-08-24T16:33:29.507513Z",
+   "lastTs": "2026-08-24T16:33:29.507513Z"
+  },
+  "did:key:z6MkkijAX9cnsy28rpyaMzWhTPJgFDt4WKsRpyFxrg6dJNed": {
+   "count": 1,
+   "seqs": [
+    125
+   ],
+   "firstTs": "2026-08-24T16:35:44.210983Z",
+   "lastTs": "2026-08-24T16:35:44.210983Z"
+  },
+  "did:key:z6MknfdptFoaj9xLcquqd4xRSFMYZ6iWd7YaRFUKNMCLJEvY": {
+   "count": 1,
+   "seqs": [
+    126
+   ],
+   "firstTs": "2026-08-24T16:36:00.067215Z",
+   "lastTs": "2026-08-24T16:36:00.067215Z"
+  },
+  "did:key:z6MkteVU8Z8UVoW1gpdYKTB6zJF8qVcas1367GCVxun1A9kW": {
+   "count": 1,
+   "seqs": [
+    127
+   ],
+   "firstTs": "2026-08-24T16:37:56.922120Z",
+   "lastTs": "2026-08-24T16:37:56.922120Z"
+  },
+  "did:key:z6MkqixmwS4r4tENaG1uWDict968JB3hefWPDpgrfW9jU6q9": {
+   "count": 1,
+   "seqs": [
+    128
+   ],
+   "firstTs": "2026-08-24T16:38:33.560295Z",
+   "lastTs": "2026-08-24T16:38:33.560295Z"
+  },
+  "did:key:z6MkgvcA2nhHmTCS3UbAgFeGv3ceHHtH7jYYT9P9m64WqNie": {
+   "count": 1,
+   "seqs": [
+    130
+   ],
+   "firstTs": "2026-08-24T16:39:00.460935Z",
+   "lastTs": "2026-08-24T16:39:00.460935Z"
+  },
+  "did:key:z6MkopuzDQ7exVdTBSG7Dhi4JfH3JRtCvjQYEy4ct3WpMLJX": {
+   "count": 1,
+   "seqs": [
+    131
+   ],
+   "firstTs": "2026-08-24T16:39:05.378295Z",
+   "lastTs": "2026-08-24T16:39:05.378295Z"
+  },
+  "did:key:z6MkrjQAGcLjfrHEDYNCJ1AcXLvmiNYjwXwp2qXCXz3mNf9Q": {
+   "count": 2,
+   "seqs": [
+    132,
+    135
+   ],
+   "firstTs": "2026-08-24T16:45:20.166475Z",
+   "lastTs": "2026-08-24T16:47:54.801019Z"
+  },
+  "did:key:z6MkfktULTayeZyxxQdYJepVQ94Ln5RQVwB9ZYyU8p241kFN": {
+   "count": 1,
+   "seqs": [
+    134
+   ],
+   "firstTs": "2026-08-24T16:47:40.114930Z",
+   "lastTs": "2026-08-24T16:47:40.114930Z"
+  },
+  "did:key:z6MkmTFiCBphRmyYVXRHDw44ZhcRoky3S5HMQXq8hfyA4fiw": {
+   "count": 1,
+   "seqs": [
+    136
+   ],
+   "firstTs": "2026-08-24T16:50:22.070153Z",
+   "lastTs": "2026-08-24T16:50:22.070153Z"
+  },
+  "did:key:z6Mkw3tcJEuvhH7MCy6Wr7W6Yi8HoSZ427C9ebifYU32SWNj": {
+   "count": 2,
+   "seqs": [
+    139,
+    145
+   ],
+   "firstTs": "2026-08-24T16:53:33.943051Z",
+   "lastTs": "2026-08-24T16:57:32.264440Z"
+  },
+  "did:key:z6MkrBA3fi8BJQvNiRvgYrrKGPQkVCE1DqgP7zudSdwqD7K9": {
+   "count": 1,
+   "seqs": [
+    140
+   ],
+   "firstTs": "2026-08-24T16:53:54.490785Z",
+   "lastTs": "2026-08-24T16:53:54.490785Z"
+  },
+  "did:key:z6MksT1X6xCbvw3TpQVWU8jRuP1q9pfpGmYRWB1Zm6ymeTMR": {
+   "count": 1,
+   "seqs": [
+    141
+   ],
+   "firstTs": "2026-08-24T16:54:00.157009Z",
+   "lastTs": "2026-08-24T16:54:00.157009Z"
+  },
+  "did:key:z6MkpBJVDkWTk8eUttpcWnUTKVeyHk6458tvvtwKfaKRabht": {
+   "count": 1,
+   "seqs": [
+    143
+   ],
+   "firstTs": "2026-08-24T16:55:12.304123Z",
+   "lastTs": "2026-08-24T16:55:12.304123Z"
+  },
+  "did:key:z6MkhFNM9YVpucxHhVdkZyi51WXz63wREoNu9aesHRxJEWtz": {
+   "count": 1,
+   "seqs": [
+    148
+   ],
+   "firstTs": "2026-08-24T17:01:21.309554Z",
+   "lastTs": "2026-08-24T17:01:21.309554Z"
+  }
+ }
+}
