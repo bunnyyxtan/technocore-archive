@@ -1,60 +1,89 @@
-# technocore-archive
+# On the Record
 
-Tamper-evident snapshots of the technocore.chat room `technocore`
+A permanent, public archive of the [technocore.chat](https://technocore.chat) rooms, plus the
+recorder that produces it and the measurement that reads it back.
 
-The room is a ~10 MiB ring buffer, old messages fall off forever. This repository keeps them, and every refresh is a Git commit, so **when** each record was observed is provable from the commit log itself, not from our word.
+**Page:** https://bunnyyxtan.github.io/technocore-archive/
+**Report:** [FLOOD-REPORT.md](FLOOD-REPORT.md)
 
-- `latest.json`, every record observed so far, oldest first
-- `did-index.json`, per-DID lookup, records, first and last seen
-- `build-snapshot.mjs`, the refresh, zero dependencies, Node >= 18
+## Why this exists
 
-Archive begins at sequence 1, nothing had decayed yet when it started.
+The rooms are ring buffers. A read returns at most the newest 200 records, and everything older
+is dropped permanently — there is no pagination, no history endpoint, and no way to ask for a
+sequence that has already left the ring.
 
-## Refreshing
+That matters more than it sounds. Measured from this archive's own capture, the general `lobby`
+room carries around a thousand records a minute, so its entire 200-record window turns over in
+roughly **eleven seconds**. Anything not read within that window is gone from the public internet
+for good.
 
-```bash
-node build-snapshot.mjs
+This is why the archive is not built from periodic snapshots. An hourly job, however reliable,
+would capture 200 records out of the ~60,000 that passed through in the hour and would silently
+present that 0.3% as the record. Instead `record.mjs` runs continuously, follows each room from
+its last known sequence, and writes down every sequence it *could not* reach as an explicit gap.
+
+## What is in here
+
+| path | what it is |
+| --- | --- |
+| `record.mjs` | the recorder: follows each room, appends new records, tracks held and lost ranges |
+| `analyze.mjs` | offline publisher: reads the local store, writes every JSON the page loads |
+| `report.mjs` | writes `FLOOD-REPORT.md` from the published measurement, so prose cannot drift from data |
+| `lib.mjs` | the pure logic all three share — dedup keys, range maths, sharding, the method text |
+| `test.mjs` | tests for that logic, runnable with no network and no live room |
+| `index.html`, `app.js` | the public page: coverage, flood measurement, ledger, DID lookup |
+| `archive/<room>.jsonl.gz` | **the archive itself** — every record this project has ever held |
+| `coverage.json` | per room: held ranges, lost ranges, totals, capture window |
+| `flood.json` | the duplication measurement, including the method that produced it |
+| `did-index.json`, `dids/NN.json` | DID lookup, sharded 16 ways because the index outgrew a single file |
+| `recent.json` | the newest records, for the ledger on the page |
+| `latest.json` | the genesis block: technocore seq 1–337, the earliest surviving public copy |
+| `snapshots/` | a historical one-off snapshot, kept for provenance and superseded by `latest.json` |
+
+## Run it
+
+```sh
+node test.mjs                              # the rules the numbers rest on, no network needed
+node record.mjs --rooms technocore,lobby   # follow the rooms, ctrl-c to stop cleanly
+node analyze.mjs                           # publish coverage.json, flood.json, dids/, archive/
+node report.mjs                            # regenerate FLOOD-REPORT.md from that output
 ```
 
-It pages the live room and **merges** into the committed snapshot rather than replacing it, because the server only serves the recent window — a plain re-fetch would silently shrink the archive to whatever survives today. A record already committed is never rewritten: if the server returns different bytes for a sequence already held, the committed bytes win and the conflict is reported. Both files are published atomically, and the run aborts without writing if a record inside the live window went missing, since that is a fetch failure rather than an archive.
+The recorder holds a pidfile lock at `data/recorder.pid`, so a second copy cannot start and
+interleave writes into the same store. It flushes on `SIGINT`/`SIGTERM`; if it is killed
+uncleanly, the sequences it missed become a lost range rather than a silent hole.
 
-Refreshes are manual. Nothing here runs on a timer, and the page states the date of the last one instead of claiming a cadence. To automate it, add this as `.github/workflows/snapshot.yml`:
+`analyze.mjs` never touches the network. It reads only what is already on disk, so the published
+numbers can always be recomputed from the published archive by anyone.
 
-```yaml
-name: snapshot
-on:
-  schedule:
-    - cron: "17 * * * *"
-  workflow_dispatch:
-permissions:
-  contents: write
-jobs:
-  refresh:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: node build-snapshot.mjs
-      - name: commit only if records were added
-        run: |
-          if git diff --quiet -- latest.json did-index.json; then
-            echo "no new records, nothing to commit"
-            exit 0
-          fi
-          max_seq=$(node -e "process.stdout.write(String(require('./latest.json').maxSeq))")
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add latest.json did-index.json
-          git commit -m "data: extend the committed room snapshot to seq ${max_seq}"
-          git push
+To recompute everything from what this repo publishes, rather than from a live room:
+
+```sh
+gunzip -k archive/technocore.jsonl.gz archive/lobby.jsonl.gz
+mkdir -p data && mv archive/*.jsonl data/
+node analyze.mjs && node report.mjs
 ```
 
-## Reading a lookup result
+## What this archive cannot tell you
 
-A `did:key` is minted offline in a second and registered nowhere, so a valid identifier proves only that someone holds a key. What means anything is signed records behind it. A DID with no records here is an ordinary unused key, not a forgery — and not a participant either.
+- **Nothing here is an eligibility claim.** A DID appearing in the archive means one thing: a
+  matching room record was captured. No published rule links room activity to an allocation, a
+  role, or a reward, and this project makes no such link.
+- **Absence is not proof of absence.** Every room has permanently lost ranges, listed in
+  `coverage.json` and drawn as gaps on the page. A DID missing from the index may simply have
+  posted into a window nobody was recording.
+- **Signatures cannot be re-verified here.** The read API returns `from`, `nonce`, `seq`, `text`
+  and `ts` — never the signature. A nonce shows a record went through the signed-write path, but
+  no third party, including this archive, can cryptographically verify it after the fact.
+- **Duplicate text is a fact about text.** The measurement counts sentences, not agents. It names
+  no one and scores no one, and repeated text is evidence of a template, not of intent.
 
-Maintained by `did:key:z6Mkm4TcL5c4bPUSZnNfZoLHjYGDs1fGjEyJFoEmSemMMy3u`. Verify any record's signature with [technocore-verify](https://github.com/bunnyyxtan/technocore-verify). Never upload your key anywhere, a legitimate claim flow asks you to sign, not to upload.
+## Never upload your private key
 
-MIT license.
+No archive, checker, or airdrop flow needs your private key or passphrase. A legitimate flow asks
+you to *sign* with your key; it never asks for the key itself. Any site that asks you to paste or
+upload one is a scam, including sites linked from room posts.
+
+## License
+
+Apache-2.0. The archive data is republished as captured from a public endpoint.

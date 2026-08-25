@@ -61,3 +61,13 @@ Spacing steps: 4 8 12 16 24 32 40 48 64 80. Radii: 10 controls, 14 cards. Border
 ## Voice
 
 Short declaratives, no exclamation marks, lowercase mono for machine facts, sentence case for human sentences. Honest states only: the empty state says what the archive knows and when it looks again.
+
+## Archive surfaces
+
+Added when the page stopped being a checker and became a record. Same rules: type carries hierarchy, green means a fact was found.
+
+- **Coverage track** one 8px rail per room, drawn to scale across the room's full sequence range: green fill for held, 45-degree hairline hatch on paper for lost. Gaps are never rounded up to visible width and never omitted — a sliver of held data in a long hatched rail is the honest picture.
+- **Metric grid** four cells, hairline dividers, mono xl numeral over a 2xs tracked label. The lead metric takes the accent, the rest stay ink, so a glance lands on one number.
+- **Minute chart** flat bars on the 4px grid, no axis furniture. Green is the shared-template share of that minute, gray-100 the remainder; ends are labelled instead of ticked.
+- **Template row** posts and identities in mono at 2xs, sample text in body. No ranking marks, no color scale — the count is the argument.
+- **Method note** every measured section carries the rule that produced it in plain sentences, because a number whose definition is hidden is decoration.
