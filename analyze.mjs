@@ -179,7 +179,7 @@ publish(`${HERE}did-index.json`, {
   dids: Object.keys(index).length,
   shards: SHARDS,
   shardPath: "dids/NN.json, NN = FNV-1a(did) mod shards, zero padded",
-  note: "seqs are capped at 12 per identity; count is the true total",
+  note: "seqs are capped at 12 and excerpts at 3 × 140 characters per identity; count is the true total",
 });
 publish(`${HERE}recent.json`, { generatedAt: coverage.generatedAt, records: recent });
 

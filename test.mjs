@@ -19,6 +19,8 @@ import {
   measure,
   buildIndex,
   MAX_SEQS,
+  MAX_SAMPLES,
+  SAMPLE_CHARS,
   SHARDS,
   shardOf,
   shardName,
@@ -269,12 +271,44 @@ test("shardName zero pads so the published paths sort", () => {
   assert.equal(shardName(15), "dids/15.json");
 });
 
-test("a sample is truncated, never dropped, and marks signed identities", () => {
+test("archive-wide excerpts stay bounded and mark signed identities", () => {
   const long = "x".repeat(400);
-  const index = buildIndex({ lobby: [rec("did:key:z6Mkwho", long, 0, 12345)] });
-  assert.ok(index["did:key:z6Mkwho"].sample.length < 220);
-  assert.ok(index["did:key:z6Mkwho"].sample.endsWith("…"));
-  assert.equal(index["did:key:z6Mkwho"].signed, true);
+  const records = Array.from({ length: MAX_SAMPLES + 4 }, (_, i) =>
+    rec("did:key:z6Mkwho", `${i}:${long}`, i, i === 0 ? 12345 : null));
+  const entry = buildIndex({ lobby: records })["did:key:z6Mkwho"];
+  assert.equal(entry.samples.length, MAX_SAMPLES);
+  assert.deepEqual(entry.samples.map((sample) => sample.seq), records.slice(0, MAX_SAMPLES).map((record) => record.seq));
+  assert.ok(entry.samples.every((sample) => sample.room === "lobby"));
+  assert.ok(entry.samples.every((sample) => sample.text.length <= SAMPLE_CHARS + 1));
+  assert.ok(entry.samples.every((sample) => sample.text.endsWith("…")));
+  assert.equal(entry.signed, true);
+});
+
+test("old contributions remain displayable after they leave recent.json", () => {
+  const did = "did:key:z6Mkm4TcL5c4bPUSZnNfZoLHjYGDs1fGjEyJFoEmSemMMy3u";
+  const old = [48, 65, 92].map((recordSeq, i) => ({
+    from: did,
+    nonce: 1787584498527 + i,
+    seq: recordSeq,
+    text: `archived contribution ${recordSeq}`,
+    ts: at(i),
+  }));
+  const newer = Array.from({ length: 300 }, (_, i) => ({
+    from: `did:key:z6Mknew${i}`,
+    seq: 1000 + i,
+    text: `newer record ${i}`,
+    ts: at(10),
+  }));
+  const recent = newer.slice(-300);
+  assert.equal(recent.some((record) => record.from === did), false);
+
+  const entry = buildIndex({ technocore: [...old, ...newer] })[did];
+  assert.deepEqual(entry.samples.map((sample) => sample.seq), [48, 65, 92]);
+  assert.deepEqual(entry.samples.map((sample) => sample.text), [
+    "archived contribution 48",
+    "archived contribution 65",
+    "archived contribution 92",
+  ]);
 });
 
 // The whole honesty claim of coverage.json rests on this: whatever is not held

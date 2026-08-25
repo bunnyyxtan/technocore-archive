@@ -242,7 +242,8 @@ export function measure(records) {
 // -------------------------------------------------------------- the lookup
 
 export const MAX_SEQS = 12;
-const SAMPLE_CHARS = 140;
+export const MAX_SAMPLES = 3;
+export const SAMPLE_CHARS = 140;
 
 // The flood mints a fresh identity per post, so the index grows without bound
 // while the page only ever needs one entry from it. Shard it and let the page
@@ -276,7 +277,7 @@ export function buildIndex(byRoom) {
         seqs: [],
         firstTs: record.ts,
         lastTs: record.ts,
-        sample: "",
+        samples: [],
         signed: false,
         shared: 0,
       });
@@ -288,8 +289,12 @@ export function buildIndex(byRoom) {
       if (record.nonce !== undefined && record.nonce !== null) entry.signed = true;
       const shared = template.get(templateKey(record.text));
       if (shared && shared.identities.size > 1) entry.shared += 1;
-      if (!entry.sample && record.text) {
-        entry.sample = record.text.length > SAMPLE_CHARS ? record.text.slice(0, SAMPLE_CHARS) + "…" : record.text;
+      if (entry.samples.length < MAX_SAMPLES && record.text) {
+        entry.samples.push({
+          room,
+          seq: record.seq,
+          text: record.text.length > SAMPLE_CHARS ? record.text.slice(0, SAMPLE_CHARS) + "…" : record.text,
+        });
       }
     }
   }

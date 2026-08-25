@@ -185,9 +185,11 @@
     head.appendChild(el("p", null, rooms + (entry.signed ? " · at least one record went through the signed path" : "")));
     excerpts.appendChild(head);
 
-    // one line each from what the archive actually holds for this identity
-    var samples = [];
-    if (recent) {
+    // The shard carries a bounded archive-wide sample, so records that have
+    // aged out of recent.json remain visible without downloading a room archive.
+    // Keep the older fallbacks so a cached page can still read older shard data.
+    var samples = Array.isArray(entry.samples) ? entry.samples : [];
+    if (!samples.length && recent) {
       samples = recent.records.filter(function (record) { return record.from === did; }).slice(0, 3);
     }
     if (samples.length) {

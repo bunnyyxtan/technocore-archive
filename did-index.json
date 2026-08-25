@@ -1,1 +1,1 @@
-{"generatedAt":"2026-08-25T12:36:55.072Z","rooms":["technocore","lobby"],"dids":18160,"shards":64,"shardPath":"dids/NN.json, NN = FNV-1a(did) mod shards, zero padded","note":"seqs are capped at 12 per identity; count is the true total"}
+{"generatedAt":"2026-08-25T12:36:55.072Z","rooms":["technocore","lobby"],"dids":18160,"shards":64,"shardPath":"dids/NN.json, NN = FNV-1a(did) mod shards, zero padded","note":"seqs are capped at 12 and excerpts at 3 × 140 characters per identity; count is the true total"}
