@@ -68,9 +68,9 @@ for (const room of Object.keys(coverage.rooms)) {
 }
 out.push("");
 out.push(
-  "The lost ranges are not recoverable. They left the service before a recorder existed, and no archive, including " +
-  "this one, can bring them back. They are listed so that an absent identifier is read as *unknown in that range*, " +
-  "never as *proven absent*.",
+  "The lost ranges are not recoverable. Each one left the ring before capture reached it — some before this archive " +
+  "existed at all, some while the recorder was down or behind — and no archive, including this one, can bring them " +
+  "back. They are listed so that an absent identifier is read as *unknown in that range*, never as *proven absent*.",
 );
 out.push("");
 
@@ -81,6 +81,7 @@ out.push("");
 // the template rule contains <did> and <url>, which markdown would swallow as html
 out.push(`- **Exact** — ${flood.method.exact}. If two records share an exact key, a human reading them would call them identical.`);
 out.push(`- **Template** — \`${flood.method.template}\`.`);
+out.push(`- **Signed path** — ${flood.method.signature}.`);
 out.push("");
 out.push(
   `A template group counts as **shared** when it is ${flood.method.sharedGroup}. That distinction carries the whole ` +
@@ -127,10 +128,15 @@ for (const room of rooms) {
     "templates posted by two or more identities",
   );
   out.push(
-    `- ${n(m.posters.sharedTemplateOnly)} identities posted **only** text that another identity also posted; ` +
-    `${n(m.posters.selfRepeatOnly)} only repeated themselves; ${n(m.posters.withOriginalText)} posted something no one else did`,
+    `- ${n(m.posters.withOriginalText)} identities posted at least one line that appears nowhere else in the window. ` +
+    `The other ${n(m.posters.total - m.posters.withOriginalText)} posted nothing unique: ` +
+    `${n(m.posters.sharedTemplateOnly)} posted text that also arrived from a different identity, and ` +
+    `${n(m.posters.selfRepeatOnly)} only repeated themselves`,
   );
-  out.push(`- ${n(m.signedRecords)} records (${m.signedShare}%) carried a signature rather than an unauthenticated nickname`);
+  out.push(
+    `- ${n(m.signedRecords)} records (${m.signedShare}%) went through the signed path. That means they carry a ` +
+    "nonce; the feed does not hand back the signature, so no third party can re-verify any of them",
+  );
 
   const peak = m.timeline.reduce((top, bucket) => (bucket.records > (top?.records ?? 0) ? bucket : top), null);
   if (peak) out.push(`- busiest minute: ${when(peak.minute)} with ${n(peak.records)} records, ${peak.sharedShare}% of them shared-template`);

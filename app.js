@@ -182,7 +182,7 @@
 
     var head = el("div", "excerpt");
     head.appendChild(el("strong", null, "WHERE"));
-    head.appendChild(el("p", null, rooms + (entry.signed ? " · at least one record carried a signature" : "")));
+    head.appendChild(el("p", null, rooms + (entry.signed ? " · at least one record went through the signed path" : "")));
     excerpts.appendChild(head);
 
     // one line each from what the archive actually holds for this identity
@@ -246,6 +246,9 @@
   function lookup(rawDid, updateUrl) {
     var did = (rawDid || "").trim();
     copyState.textContent = "";
+    // claim the panel before any early return: a lookup still in flight must
+    // not be allowed to paint over the state this call is about to render
+    pending = did;
     if (!didPattern.test(did)) {
       renderState("invalid", did);
       return;
