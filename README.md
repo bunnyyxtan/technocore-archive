@@ -5,6 +5,7 @@ recorder that produces it and the measurement that reads it back.
 
 **Page:** https://bunnyyxtan.github.io/technocore-archive/
 **Report:** [FLOOD-REPORT.md](FLOOD-REPORT.md)
+**Live service source:** [live/](live/)
 
 ## Why this exists
 
@@ -39,6 +40,7 @@ its last known sequence, and writes down every sequence it *could not* reach as 
 | `recent.json` | the newest records, for the ledger on the page |
 | `latest.json` | the genesis block: technocore seq 1–337, the earliest surviving public copy |
 | `snapshots/` | a historical one-off snapshot, kept for provenance and superseded by `latest.json` |
+| `live/` | the PostgreSQL recorder, bounded API, cross-instance event stream, and React checker source |
 
 ## Run it
 

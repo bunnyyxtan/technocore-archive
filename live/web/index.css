@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;700&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-quiet: var(--quiet);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-green: var(--green);
+  --color-green-pale: var(--green-pale);
+  --color-warn: var(--warn);
+
+  --font-sans: var(--app-font-sans);
+  --font-mono: var(--app-font-mono);
+}
+
+:root {
+  --paper: #fbfaf6;
+  --surface: #fffefa;
+  --ink: #17201d;
+  --quiet: #58645e;
+  --faint: #66716c;
+  --line: #dedfd8;
+  --green: #0b6b4a;
+  --green-pale: #edf5ef;
+  --warn: #796337;
+
+  --app-font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --app-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* shadcn fallback vars */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --border: var(--line);
+  --primary: var(--green);
+  --primary-foreground: var(--surface);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --muted: var(--surface);
+  --muted-foreground: var(--quiet);
+  --destructive: var(--warn);
+  --destructive-foreground: var(--surface);
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--app-font-sans);
+  letter-spacing: -0.012em;
+}
+
+@layer utilities {
+  .break-anywhere {
+    overflow-wrap: anywhere;
+  }
+}

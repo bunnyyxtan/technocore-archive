@@ -1,0 +1,258 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: live-archive
+    description: Continuously captured Technocore archive data
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /live/status:
+    get:
+      operationId: getLiveArchiveStatus
+      tags: [live-archive]
+      summary: Get current recorder and archive status
+      description: Returns live database coverage and freshness for every recorded room.
+      responses:
+        "200":
+          description: Current live archive status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveArchiveStatus"
+  /live/dids/{did}:
+    get:
+      operationId: getLiveDid
+      tags: [live-archive]
+      summary: Look up a DID in the live archive
+      description: Returns bounded evidence from the complete held archive, not only the recent room window.
+      parameters:
+        - name: did
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 20
+            maxLength: 160
+      responses:
+        "200":
+          description: DID lookup result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveDidResult"
+        "400":
+          description: Invalid DID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /live/recent:
+    get:
+      operationId: getLiveRecentRecords
+      tags: [live-archive]
+      summary: Get the latest durable records
+      description: Returns a bounded newest-first feed from one room or all recorded rooms.
+      parameters:
+        - name: room
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [technocore, lobby]
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Recent durable records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveRecentResponse"
+  /live/events:
+    get:
+      operationId: streamLiveArchiveEvents
+      tags: [live-archive]
+      summary: Stream recorder freshness events
+      description: Server-sent events emitted after records are durably inserted.
+      responses:
+        "200":
+          description: Server-sent recorder events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    LiveRoomStatus:
+      type: object
+      properties:
+        room:
+          type: string
+          enum: [technocore, lobby]
+        recordsHeld:
+          type: number
+        maxSeq:
+          type: number
+        firstSeq:
+          type: number
+        lastCaptureAt:
+          type: ["string", "null"]
+          format: date-time
+        lostRecords:
+          type: number
+        lagSeconds:
+          type: ["number", "null"]
+      required:
+        - room
+        - recordsHeld
+        - maxSeq
+        - firstSeq
+        - lastCaptureAt
+        - lostRecords
+        - lagSeconds
+    LiveArchiveStatus:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [live]
+        generatedAt:
+          type: string
+          format: date-time
+        recorder:
+          type: string
+          enum: [live, stale, starting]
+        recordsHeld:
+          type: number
+        uniqueDids:
+          type: number
+        rooms:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiveRoomStatus"
+      required:
+        - source
+        - generatedAt
+        - recorder
+        - recordsHeld
+        - uniqueDids
+        - rooms
+    LiveRecord:
+      type: object
+      properties:
+        room:
+          type: string
+          enum: [technocore, lobby]
+        seq:
+          type: number
+        from:
+          type: string
+        nonce:
+          type: ["string", "null"]
+        text:
+          type: string
+        ts:
+          type: string
+          format: date-time
+      required: [room, seq, from, nonce, text, ts]
+    LiveDidResult:
+      type: object
+      properties:
+        did:
+          type: string
+        found:
+          type: boolean
+        count:
+          type: number
+        firstTs:
+          type: ["string", "null"]
+          format: date-time
+        lastTs:
+          type: ["string", "null"]
+          format: date-time
+        signedPathCount:
+          type: number
+        rooms:
+          type: object
+          additionalProperties:
+            type: number
+        seqs:
+          type: array
+          items:
+            type: number
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiveRecord"
+        recordsShown:
+          type: number
+        source:
+          type: string
+          enum: [live]
+        generatedAt:
+          type: string
+          format: date-time
+      required:
+        - did
+        - found
+        - count
+        - firstTs
+        - lastTs
+        - signedPathCount
+        - rooms
+        - seqs
+        - records
+        - recordsShown
+        - source
+        - generatedAt
+    LiveRecentResponse:
+      type: object
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiveRecord"
+      required: [generatedAt, records]
+
