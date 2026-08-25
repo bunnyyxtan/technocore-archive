@@ -158,7 +158,11 @@ class RoomStore {
     // resume from the highest sequence actually on disk, never from the saved
     // cursor: if the process died between appending and flushing state, the
     // records won and the cursor must agree with them
-    this.cursor = this.held.size ? Math.max(...this.held) : 0;
+    // Math.max(...set) spreads one argument per record and blows the call
+    // stack once a room holds tens of thousands of them, so fold instead
+    let highest = 0;
+    for (const seq of this.held) if (seq > highest) highest = seq;
+    this.cursor = highest;
     console.log(`${this.room}: resuming at seq ${this.cursor} with ${this.held.size} records held`);
   }
 
