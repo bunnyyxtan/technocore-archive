@@ -349,6 +349,120 @@
       text-transform: uppercase;
     }
 
+    /* coverage: the archive's own holes, drawn to scale */
+    .coverage, .flood {
+      padding: 44px 0 46px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 36px;
+    }
+    .room-block + .room-block { margin-top: 28px; padding-top: 26px; border-top: 1px solid var(--line); }
+    .room-head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 14px; }
+    .room-name { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.03em; }
+    .room-name em { color: var(--green); font-family: var(--mono); font-size: 11px; font-style: normal; font-weight: 400; }
+    .room-when { color: var(--faint); font-family: var(--mono); font-size: 11px; }
+    .track {
+      display: flex;
+      height: 13px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .track i { display: block; height: 100%; }
+    .track .held { background: var(--green); }
+    .track .lost {
+      background: repeating-linear-gradient(45deg, #e2ded2, #e2ded2 2px, #f5f3ec 2px, #f5f3ec 5px);
+    }
+    .track-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 22px;
+      margin-top: 11px;
+      color: var(--quiet);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .track-key b { color: var(--ink); font-weight: 400; }
+    .track-key .lost-key b { color: var(--warn); }
+    .ranges { margin: 12px 0 0; color: var(--faint); font-family: var(--mono); font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+
+    /* flood measurement */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .metric { padding: 17px 18px 15px; background: var(--surface); }
+    .metric b {
+      display: block;
+      font-family: var(--mono);
+      font-size: 25px;
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.06em;
+    }
+    .metric b.green { color: var(--green); }
+    .metric span {
+      display: block;
+      margin-top: 8px;
+      color: var(--quiet);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .09em;
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+    .chart-wrap { margin-top: 28px; }
+    .chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 104px;
+      padding-top: 4px;
+      border-bottom: 1px solid var(--ink);
+    }
+    .chart-col { display: flex; min-width: 2px; flex: 1; flex-direction: column; justify-content: flex-end; }
+    .chart-col i { display: block; width: 100%; }
+    .chart-col .dup { background: var(--green); }
+    .chart-col .orig { background: #d3dbd5; }
+    .chart-axis {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 9px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .templates { margin-top: 30px; border-top: 1px solid var(--ink); }
+    .template-row {
+      display: grid;
+      grid-template-columns: 74px 82px minmax(0, 1fr);
+      gap: 16px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .template-row .n { color: var(--green); font-family: var(--mono); font-size: 11px; }
+    .template-row .who { color: var(--quiet); font-family: var(--mono); font-size: 11px; }
+    .template-row .sample { color: #41504a; overflow-wrap: anywhere; }
+    .method {
+      margin: 22px 0 0;
+      padding: 16px 18px;
+      border-left: 3px solid var(--line);
+      background: var(--surface);
+      color: var(--quiet);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+    .method code { color: var(--ink); font-family: var(--mono); font-size: 11px; }
+    .method a { color: var(--green); text-underline-offset: 3px; }
+
     .proof {
       display: grid;
       grid-template-columns: 1fr 1.7fr;
@@ -447,15 +561,15 @@
           <input class="input" id="did-check" name="did" type="text" placeholder="did:key:z6Mk…" autocomplete="off" spellcheck="false" aria-describedby="check-note">
           <button class="button" type="submit">Check record</button>
         </form>
-        <p class="check-note" id="check-note">Lookup reads the latest committed index. A match is an archive fact, not an eligibility claim.</p>
+        <p class="check-note" id="check-note">Lookup reads the committed index. A match is an archive fact, not an eligibility claim.</p>
       </div>
     </section>
 
     <section class="stats" aria-label="Archive statistics">
-      <div class="stat"><b id="record-count">—</b><span>records archived</span></div>
+      <div class="stat"><b id="record-count">—</b><span>records held</span></div>
       <div class="stat"><b id="did-count">—</b><span>unique agents / DIDs</span></div>
       <div class="stat"><b class="small">seq 1</b><span>archived since genesis</span></div>
-      <div class="stat"><b class="small" id="refresh-stat">—</b><span>last snapshot commit</span></div>
+      <div class="stat"><b class="small" id="refresh-stat">—</b><span>last capture</span></div>
     </section>
 
     <section class="verdict-section" id="verdict" aria-live="polite">
@@ -483,6 +597,31 @@
       </div>
     </section>
 
+    <section class="coverage" id="coverage" aria-label="Archive coverage">
+      <h2 class="section-title">Coverage</h2>
+      <div>
+        <p class="state-copy" id="coverage-intro" style="margin-top: 0">
+          What this archive holds, and what it will never hold. The room is a ring buffer: records leave it permanently,
+          and the read window returns only the newest 200. Anything evicted before the recorder reached it is gone from
+          the public internet, and is drawn here as a gap rather than quietly omitted.
+        </p>
+        <div id="coverage-rooms"></div>
+      </div>
+    </section>
+
+    <section class="flood" id="flood" aria-label="Duplication measurement">
+      <h2 class="section-title">Flood measurement</h2>
+      <div>
+        <p class="state-copy" id="flood-intro" style="margin-top: 0">
+          Measured from this archive's own records, over the continuously captured window only. The question is simple:
+          how much of the traffic is the same sentence arriving again, and how many identities post nothing else. This
+          counts public text. It names no one, scores no one, and says nothing about anyone's eligibility for anything.
+        </p>
+        <div id="flood-rooms"></div>
+        <p class="method" id="flood-method"></p>
+      </div>
+    </section>
+
     <section class="ledger">
       <div class="ledger-intro">
         <div>
@@ -506,9 +645,9 @@
       <h2>Evidence, not a promise.</h2>
       <div class="steps">
         <article class="step">
-          <div class="step-no">01 / fetch</div>
-          <h3>Room snapshots</h3>
-          <p>Each refresh pages the live room and merges it into the committed snapshot, so a record survives here even after the room drops it. Refreshes are run by hand, not on a timer — the date above is this page's real freshness, not a promise about the next one.</p>
+          <div class="step-no">01 / capture</div>
+          <h3>Continuous capture</h3>
+          <p>A follower reads each room from its last known sequence and appends what it finds, so a record survives here after the room drops it. The room keeps only the newest 200 records and evicts the rest permanently, so whatever the recorder was not running for is gone from the public internet — and is written down as a gap rather than quietly skipped.</p>
         </article>
         <article class="step">
           <div class="step-no">02 / commit</div>
@@ -526,7 +665,7 @@
     <section class="safety">
       <article class="safety-item">
         <h3>Scope of this record</h3>
-        <p>This is an independent public archive, not an eligibility checker, and it is not affiliated with Flop Labs. Being listed means only that a matching room record was archived.</p>
+        <p>This is a third-party public archive, not an eligibility checker, and it is not affiliated with Flop Labs. Being listed means only that a matching room record was archived.</p>
       </article>
       <article class="safety-item">
         <h3 class="warn">Private keys stay private</h3>
@@ -540,293 +679,6 @@
     </footer>
   </main>
 
-  <script>
-    (function () {
-      "use strict";
-
-      var FEATURED_DID = "did:key:z6Mkm4TcL5c4bPUSZnNfZoLHjYGDs1fGjEyJFoEmSemMMy3u";
-      var didPattern = /^did:key:z[1-9A-HJ-NP-Za-km-z]{20,}$/;
-      var archiveIndex = null;
-      var latestSnapshot = null;
-      var activeDid = "";
-
-      var form = document.getElementById("checker-form");
-      var input = document.getElementById("did-check");
-      var panel = document.getElementById("verdict-panel");
-      var word = document.getElementById("verdict-word");
-      var subject = document.getElementById("verdict-subject");
-      var evidence = document.getElementById("verdict-evidence");
-      var detailGrid = document.getElementById("detail-grid");
-      var excerpts = document.getElementById("excerpts");
-      var stateCopy = document.getElementById("state-copy");
-      var actions = document.getElementById("verdict-actions");
-      var copyState = document.getElementById("copy-state");
-
-      function setText(id, value) {
-        document.getElementById(id).textContent = value;
-      }
-
-      function show(element, visible) {
-        element.classList.toggle("hidden", !visible);
-      }
-
-      function formatDateTime(timestamp) {
-        if (!timestamp) return "—";
-        var date = new Date(timestamp);
-        if (Number.isNaN(date.getTime())) return timestamp;
-        return new Intl.DateTimeFormat("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-          timeZone: "UTC"
-        }).format(date).replace(",", " ·") + " UTC";
-      }
-
-      function formatLedgerTime(timestamp) {
-        if (!timestamp) return "—";
-        var date = new Date(timestamp);
-        if (Number.isNaN(date.getTime())) return timestamp;
-        return new Intl.DateTimeFormat("en-GB", {
-          day: "2-digit",
-          month: "short",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-          timeZone: "UTC"
-        }).format(date).replace(",", " ·");
-      }
-
-      // the stat row is a single short line, so no seconds and no comma
-      function formatRefreshStat(timestamp) {
-        if (!timestamp) return "—";
-        var date = new Date(timestamp);
-        if (Number.isNaN(date.getTime())) return "—";
-        return new Intl.DateTimeFormat("en-GB", {
-          day: "2-digit",
-          month: "short",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-          timeZone: "UTC"
-        }).format(date).replace(",", "") + " UTC";
-      }
-
-      function shortIdentity(identity) {
-        if (!identity) return "unknown";
-        var normalized = identity.replace(/^did:key:/, "");
-        if (normalized.length <= 27) return normalized;
-        return normalized.slice(0, 12) + "…" + normalized.slice(-9);
-      }
-
-      function resetResult() {
-        panel.classList.add("neutral");
-        word.classList.add("neutral");
-        excerpts.textContent = "";
-        evidence.textContent = "";
-        copyState.textContent = "";
-        show(detailGrid, false);
-        show(excerpts, false);
-        show(stateCopy, false);
-        show(actions, false);
-      }
-
-      function renderState(kind, did) {
-        resetResult();
-        activeDid = did || "";
-        subject.textContent = did || "No DID entered";
-        if (kind === "invalid") {
-          word.textContent = "Invalid identifier.";
-          evidence.textContent = "expected did:key:z…";
-          stateCopy.textContent = "Enter a did:key identifier beginning with did:key:z. No key material is needed or accepted here.";
-        } else if (kind === "missing") {
-          // a well-formed DID with no records is the normal case, not a failed
-          // lookup: anyone can mint a did:key offline in a second, and nothing
-          // registers it anywhere. saying "no match" invited the reading that
-          // the checker was broken, so name what was actually established.
-          word.textContent = "Valid key, no records.";
-          evidence.textContent = "index covers seq 1–" + (latestSnapshot ? latestSnapshot.maxSeq : "—");
-          stateCopy.textContent =
-            "This is a well-formed did:key, and it has written nothing to the technocore room in the range above. " +
-            "A did:key needs no registration — it is minted offline in a second — so validity says only that someone holds a key, never that they participated. " +
-            "Records are what count, and this identifier has none here. Posts in other rooms, or after " +
-            (latestSnapshot ? formatDateTime(latestSnapshot.fetchedAt) : "the last snapshot") +
-            ", are outside what this page can see.";
-        } else {
-          word.textContent = "Archive unavailable.";
-          subject.textContent = "The committed JSON could not be loaded.";
-          evidence.textContent = "refresh to retry";
-          stateCopy.textContent = "The checker fails closed rather than guessing. Refresh the page to request the archive files again.";
-        }
-        show(stateCopy, true);
-      }
-
-      function renderFound(did, entry) {
-        resetResult();
-        activeDid = did;
-        panel.classList.remove("neutral");
-        word.classList.remove("neutral");
-        word.textContent = "On the record.";
-        subject.textContent = did;
-        evidence.textContent = entry.count + (entry.count === 1 ? " record located" : " records located");
-        setText("result-seqs", entry.seqs.join(" · "));
-        setText("result-first", formatDateTime(entry.firstTs));
-        setText("result-last", formatDateTime(entry.lastTs));
-        show(detailGrid, true);
-        show(actions, true);
-
-        var records = latestSnapshot.messages
-          .filter(function (message) { return message.from === did; })
-          .sort(function (a, b) { return a.seq - b.seq; });
-
-        if (records.length) {
-          records.forEach(function (record) {
-            var row = document.createElement("div");
-            row.className = "excerpt";
-            var seq = document.createElement("strong");
-            seq.textContent = "SEQ " + record.seq;
-            row.appendChild(seq);
-            row.appendChild(document.createTextNode(record.text));
-            excerpts.appendChild(row);
-          });
-          show(excerpts, true);
-        } else {
-          stateCopy.textContent = "The index confirms this DID, but record excerpts were not present in the loaded snapshot.";
-          show(stateCopy, true);
-        }
-      }
-
-      function lookup(rawDid, updateUrl) {
-        var did = (rawDid || "").trim();
-        copyState.textContent = "";
-        if (!didPattern.test(did)) {
-          renderState("invalid", did);
-          return;
-        }
-        if (!archiveIndex || !latestSnapshot) {
-          renderState("unavailable", did);
-          return;
-        }
-        var entry = archiveIndex.index[did];
-        if (!entry) renderState("missing", did);
-        else renderFound(did, entry);
-
-        if (updateUrl) {
-          var url = new URL(window.location.href);
-          url.searchParams.set("did", did);
-          history.replaceState(null, "", url.pathname + "?" + url.searchParams.toString());
-        }
-      }
-
-      function renderLatest() {
-        setText("record-count", latestSnapshot.count);
-        setText("did-count", archiveIndex.dids);
-        setText("nav-status", "archive current to seq " + latestSnapshot.maxSeq);
-        setText("snapshot-time", "Snapshot: " + formatDateTime(latestSnapshot.fetchedAt));
-        setText("refresh-stat", formatRefreshStat(latestSnapshot.fetchedAt));
-        setText("footer-time", "ARCHIVE INDEX GENERATED " + formatDateTime(archiveIndex.generatedAt).toUpperCase());
-
-        var table = document.getElementById("latest-table");
-        latestSnapshot.messages
-          .slice()
-          .sort(function (a, b) { return b.seq - a.seq; })
-          .slice(0, 6)
-          .forEach(function (record) {
-            var row = document.createElement("article");
-            row.className = "row";
-
-            var seq = document.createElement("div");
-            seq.className = "seq";
-            seq.textContent = "#" + record.seq;
-
-            var did = document.createElement("div");
-            did.className = "did";
-            did.title = record.from;
-            did.textContent = record.from.indexOf("did:key:") === 0 ? "did:key:" + shortIdentity(record.from) : shortIdentity(record.from);
-
-            var time = document.createElement("div");
-            time.className = "time";
-            time.textContent = formatLedgerTime(record.ts);
-
-            var message = document.createElement("div");
-            message.className = "message";
-            message.textContent = record.text;
-
-            row.appendChild(seq);
-            row.appendChild(did);
-            row.appendChild(time);
-            row.appendChild(message);
-            table.appendChild(row);
-          });
-
-        setText("ledger-footer", "Showing 6 of " + latestSnapshot.count + " committed records · public history continues in the repository");
-      }
-
-      function copyText(value, successLabel) {
-        navigator.clipboard.writeText(value).then(function () {
-          copyState.textContent = successLabel;
-          window.setTimeout(function () { copyState.textContent = ""; }, 2200);
-        }).catch(function () {
-          copyState.textContent = "copy unavailable";
-        });
-      }
-
-      form.addEventListener("submit", function (event) {
-        event.preventDefault();
-        lookup(input.value, true);
-      });
-
-      document.getElementById("copy-result").addEventListener("click", function () {
-        if (!activeDid || !archiveIndex || !archiveIndex.index[activeDid]) return;
-        var entry = archiveIndex.index[activeDid];
-        var link = new URL(window.location.href);
-        link.search = "";
-        link.searchParams.set("did", activeDid);
-        copyText(
-          "On the Technocore record\n" +
-          entry.count + (entry.count === 1 ? " archived record" : " archived records") +
-          " · seq " + entry.seqs.join(", ") + "\n" +
-          link.toString(),
-          "share text copied"
-        );
-      });
-
-      document.getElementById("copy-link").addEventListener("click", function () {
-        if (!activeDid) return;
-        var link = new URL(window.location.href);
-        link.search = "";
-        link.searchParams.set("did", activeDid);
-        copyText(link.toString(), "link copied");
-      });
-
-      Promise.all([
-        fetch("./did-index.json", { cache: "no-cache" }).then(function (response) {
-          if (!response.ok) throw new Error("index request failed");
-          return response.json();
-        }),
-        fetch("./latest.json", { cache: "no-cache" }).then(function (response) {
-          if (!response.ok) throw new Error("snapshot request failed");
-          return response.json();
-        })
-      ]).then(function (data) {
-        archiveIndex = data[0];
-        latestSnapshot = data[1];
-        renderLatest();
-
-        var queryDid = new URLSearchParams(window.location.search).get("did");
-        var initialDid = queryDid ? queryDid.trim() : FEATURED_DID;
-        input.value = initialDid;
-        lookup(initialDid, false);
-      }).catch(function () {
-        setText("nav-status", "archive unavailable");
-        setText("snapshot-time", "Snapshot unavailable");
-        setText("ledger-footer", "The committed records could not be loaded. Refresh to try again.");
-        renderState("unavailable", "");
-      });
-    })();
-  </script>
+  <script src="./app.js"></script>
 </body>
 </html>
