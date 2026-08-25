@@ -6,6 +6,7 @@
 //   node test.mjs
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   tidy,
   same,
@@ -274,6 +275,52 @@ test("a sample is truncated, never dropped, and marks signed identities", () => 
   assert.ok(index["did:key:z6Mkwho"].sample.length < 220);
   assert.ok(index["did:key:z6Mkwho"].sample.endsWith("…"));
   assert.equal(index["did:key:z6Mkwho"].signed, true);
+});
+
+// The whole honesty claim of coverage.json rests on this: whatever is not held
+// is lost, and the two together are exactly the room. Deriving loss this way is
+// what stops a repeated "we could not reach the head" note from being counted
+// twice and inflating how much the ring is said to have destroyed.
+test("held plus lost always accounts for the room exactly once", () => {
+  const cases = [
+    { held: [[1, 10], [20, 30]], maxSeq: 40, lost: [[11, 19], [31, 40]] },
+    { held: [[5, 10]], maxSeq: 10, lost: [[1, 4]] },
+    { held: [[1, 3]], maxSeq: 3, lost: [] },
+    { held: [[222802, 223781], [228708, 239534]], maxSeq: 239534, lost: [[1, 222801], [223782, 228707]] },
+  ];
+  for (const { held, maxSeq, lost } of cases) {
+    assert.deepEqual(missingRanges(held, maxSeq), lost);
+    assert.equal(countRanges(held) + countRanges(missingRanges(held, maxSeq)), maxSeq, "no sequence counted twice or dropped");
+  }
+});
+
+// Two copies of the same hash exist by necessity — one publishes the buckets,
+// one picks a bucket in the browser — so the only thing keeping a lookup
+// working is that they agree. Compare the real browser source, not a copy of
+// it: a copy would drift with the original and prove nothing.
+test("the browser copy of the shard hash matches the publisher's", () => {
+  const source = readFileSync(new URL("./app.js", import.meta.url), "utf8");
+  const start = source.indexOf("function shardOf(");
+  assert.ok(start >= 0, "app.js still defines shardOf — if it was renamed, this test must follow it");
+
+  let depth = 0;
+  let end = -1;
+  for (let i = source.indexOf("{", start); i < source.length; i += 1) {
+    if (source[i] === "{") depth += 1;
+    else if (source[i] === "}" && --depth === 0) {
+      end = i + 1;
+      break;
+    }
+  }
+  assert.ok(end > start, "found a brace-balanced shardOf in app.js");
+
+  const browserShardOf = new Function(`${source.slice(start, end)} return shardOf;`)();
+  for (let i = 0; i < 500; i += 1) {
+    const did = `did:key:z6Mk${i.toString(36)}Qw${i * 7919}`;
+    assert.equal(browserShardOf(did, SHARDS), shardOf(did, SHARDS), `browser and publisher disagree on ${did}`);
+  }
+  assert.equal(browserShardOf("", SHARDS), shardOf("", SHARDS));
+  assert.equal(browserShardOf("kirit", SHARDS), shardOf("kirit", SHARDS));
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -168,7 +168,11 @@ class RoomStore {
   noteLoss(from, to, reason) {
     if (to < from) return;
     const last = this.lost[this.lost.length - 1];
-    if (last && last.to + 1 === from && last.reason === reason) last.to = to;
+    // The same interval gets noticed repeatedly: while the cursor is stuck
+    // behind the ring, every empty response reports the same unreachable head.
+    // Overlapping notes merge rather than stack, so the list stays a set of
+    // intervals instead of a running tally that would exaggerate the loss.
+    if (last && last.reason === reason && from <= last.to + 1) last.to = Math.max(last.to, to);
     else this.lost.push({ from, to, reason, noticedAt: now() });
   }
 
@@ -230,7 +234,9 @@ class RoomStore {
 async function step(store) {
   const body = await readRoom(store.room, store.cursor);
   store.polls += 1;
-  const messages = body.messages ?? [];
+  // sort defensively: every ordering assumption below is about sequence order,
+  // not about the order the server happened to serialise them in
+  const messages = (body.messages ?? []).slice().sort((a, b) => a.seq - b.seq);
 
   if (messages.length === 0) {
     // nothing new. the room's own head tells us whether that is really true or
@@ -246,6 +252,15 @@ async function step(store) {
   // anything between our cursor and the oldest record still served is gone
   if (first > store.cursor + 1) {
     store.noteLoss(store.cursor + 1, first - 1, "evicted from the ring before capture reached it");
+  }
+
+  // A sequence missing from inside a response is the one hole that could slip
+  // through silently: the cursor jumps to the last record in the batch, so that
+  // sequence is never asked for again and nothing else would notice it left.
+  for (let i = 1; i < messages.length; i += 1) {
+    const previous = messages[i - 1].seq;
+    const current = messages[i].seq;
+    if (current > previous + 1) store.noteLoss(previous + 1, current - 1, "absent from a response that spanned it");
   }
 
   store.absorb(messages);
@@ -296,24 +311,44 @@ async function follow(store, until) {
 // and corrupt the archive, and a workflow restart makes that easy to cause by
 // accident. Take a pidfile lock; a stale one from a killed process is fine to
 // steal, a live one is not.
+import { unlinkSync as unlinkLock } from "node:fs";
+
 mkdirSync(DIR, { recursive: true });
 const LOCK = `${DIR}recorder.pid`;
-if (existsSync(LOCK)) {
-  const held = Number(readFileSync(LOCK, "utf8").trim());
-  let alive = false;
+
+// Exclusive create, not exists-then-write: two recorders started in the same
+// instant would both pass an existence check and then interleave their batches
+// into one append-only store. Only the loser of an atomic create looks at the
+// lock at all, and it may take it only if the pid behind it is gone.
+function claimLock(alreadyCleared) {
   try {
-    process.kill(held, 0);
-    alive = held !== process.pid;
-  } catch {
-    alive = false;
+    writeFileSync(LOCK, String(process.pid), { flag: "wx" });
+    return true;
+  } catch (error) {
+    if (error.code !== "EEXIST" || alreadyCleared) return false;
+    const held = Number(readFileSync(LOCK, "utf8").trim());
+    let alive = false;
+    try {
+      process.kill(held, 0);
+      alive = held !== process.pid;
+    } catch {
+      alive = false;
+    }
+    if (alive) return false;
+    console.log(`clearing a stale lock from pid ${held}`);
+    try {
+      unlinkLock(LOCK);
+    } catch {
+      // someone else cleared it first — the retry below decides who wins
+    }
+    return claimLock(true);
   }
-  if (alive) {
-    console.error(`another recorder is already running as pid ${held} — refusing to double-append to ${DIR}`);
-    process.exit(1);
-  }
-  console.log(`clearing a stale lock from pid ${held}`);
 }
-writeFileSync(LOCK, String(process.pid));
+
+if (!claimLock(false)) {
+  console.error(`another recorder holds ${LOCK} — refusing to double-append to ${DIR}`);
+  process.exit(1);
+}
 
 const stores = ROOMS.map((room) => new RoomStore(room));
 for (const store of stores) store.load();

@@ -23,7 +23,7 @@
 
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from "node:fs";
 import { gzipSync } from "node:zlib";
-import { toRanges, countRanges, measure, buildIndex, METHOD, SHARDS, shardOf, shardName } from "./lib.mjs";
+import { toRanges, missingRanges, countRanges, measure, buildIndex, METHOD, SHARDS, shardOf, shardName } from "./lib.mjs";
 
 function flag(name, fallback = null) {
   const at = process.argv.indexOf(name);
@@ -75,16 +75,35 @@ for (const room of ROOMS) {
     ? JSON.parse(readFileSync(`${DIR}${room}.state.json`, "utf8"))
     : {};
   const held = toRanges(records.map((r) => r.seq));
-  const lost = state.lost ?? [];
+  const notes = state.lost ?? [];
+
+  // The highest sequence we have any evidence of: usually the newest record we
+  // hold, but a note can prove the room went further than we ever reached.
+  const maxSeq = Math.max(
+    records[records.length - 1].seq,
+    state.maxSeq ?? 0,
+    notes.reduce((n, g) => Math.max(n, g.to), 0),
+  );
+
+  // Loss is the complement of what we hold, never the sum of the recorder's
+  // notes. The same interval can be noticed more than once — an empty response
+  // keeps reporting a head the cursor cannot reach — and adding those up would
+  // claim the ring destroyed more than it did. The notes stay the only source
+  // of *why* a range is missing, which the complement cannot know.
+  const lostRanges = missingRanges(held, maxSeq);
+  const reasons = new Set();
+  for (const note of notes) {
+    if (lostRanges.some(([from, to]) => note.from <= to && note.to >= from)) reasons.add(note.reason);
+  }
 
   coverage.rooms[room] = {
     records: records.length,
     heldRanges: held,
     heldRecords: countRanges(held),
-    lostRanges: lost.map((g) => [g.from, g.to]),
-    lostRecords: lost.reduce((n, g) => n + (g.to - g.from + 1), 0),
-    lostReasons: [...new Set(lost.map((g) => g.reason))],
-    maxSeq: records[records.length - 1].seq,
+    lostRanges,
+    lostRecords: countRanges(lostRanges),
+    lostReasons: [...reasons],
+    maxSeq,
     firstCaptureAt: state.firstCaptureAt ?? null,
     lastCaptureAt: state.lastCaptureAt ?? null,
     firstTs: records[0].ts,
@@ -97,7 +116,7 @@ for (const room of ROOMS) {
   writeFileSync(`${HERE}archive/${room}.jsonl.gz`, gzipSync(Buffer.from(jsonl), { level: 9 }));
   console.log(
     `${room}: ${records.length} records, seq ${records[0].seq}..${records[records.length - 1].seq}, ` +
-    `${lost.length} lost range(s) totalling ${coverage.rooms[room].lostRecords}`,
+    `${lostRanges.length} lost range(s) totalling ${coverage.rooms[room].lostRecords}`,
   );
 }
 
