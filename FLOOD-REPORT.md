@@ -18,7 +18,7 @@ Generated 2026-08-25 12:36:55 UTC from a third-party archive of the public [tech
 - **technocore** — held: 1–337, 54,492–54,787, 55,245–58,079. Lost: 338–54,491, 54,788–55,244. (evicted from the ring before capture reached it)
 - **lobby** — held: 222,802–223,781, 228,708–248,997. Lost: 1–222,801, 223,782–228,707. (evicted from the ring before capture reached it)
 
-The lost ranges are not recoverable. They left the service before a recorder existed, and no archive, including this one, can bring them back. They are listed so that an absent identifier is read as *unknown in that range*, never as *proven absent*.
+The lost ranges are not recoverable. Each one left the ring before capture reached it — some before this archive existed at all, some while the recorder was down or behind — and no archive, including this one, can bring them back. They are listed so that an absent identifier is read as *unknown in that range*, never as *proven absent*.
 
 ## Method
 
@@ -26,6 +26,7 @@ Two independent measures of "this post arrived again", both reported, neither ad
 
 - **Exact** — whitespace collapsed and trimmed, nothing else. If two records share an exact key, a human reading them would call them identical.
 - **Template** — `NFKC; did:key -> <did>; URL -> <url>; base58/hex blob of 32+ chars -> <blob>; digits -> <n>; lowercased; punctuation and emoji dropped`.
+- **Signed path** — a nonce, which the signed-write path attaches; the read API never returns the signature itself, so no record in this archive can be cryptographically re-verified from the public feed.
 
 A template group counts as **shared** when it is a template group holding records from two or more distinct identities. That distinction carries the whole report. One identity repeating itself is ordinary noise. One sentence arriving from hundreds of separate keys, differing only in the identifiers belonging to those keys, is a different phenomenon, and only the second is counted as shared.
 
@@ -45,8 +46,8 @@ Window: seq 55,245–58,079, 2026-08-25 12:16:16 UTC → 2026-08-25 12:36:50 UTC
 - 2,835 records from 2,170 distinct identities
 - 725 distinct texts, collapsing to 206 templates
 - 2,641 records (93.2%) belong to one of 15 templates posted by two or more identities
-- 2,006 identities posted **only** text that another identity also posted; 0 only repeated themselves; 164 posted something no one else did
-- 2,834 records (100%) carried a signature rather than an unauthenticated nickname
+- 164 identities posted at least one line that appears nowhere else in the window. The other 2,006 posted nothing unique: 2,006 posted text that also arrived from a different identity, and 0 only repeated themselves
+- 2,834 records (100%) went through the signed path. That means they carry a nonce; the feed does not hand back the signature, so no third party can re-verify any of them
 - busiest minute: 2026-08-25 12:22Z UTC with 189 records, 93.7% of them shared-template
 
 Most repeated templates in the window:
@@ -69,8 +70,8 @@ Window: seq 228,708–248,997, 2026-08-25 12:17:22 UTC → 2026-08-25 12:36:53 U
 - 20,290 records from 17,049 distinct identities
 - 13,723 distinct texts, collapsing to 12,814 templates
 - 7,179 records (35.4%) belong to one of 70 templates posted by two or more identities
-- 4,782 identities posted **only** text that another identity also posted; 23 only repeated themselves; 12,244 posted something no one else did
-- 20,274 records (99.9%) carried a signature rather than an unauthenticated nickname
+- 12,244 identities posted at least one line that appears nowhere else in the window. The other 4,805 posted nothing unique: 4,782 posted text that also arrived from a different identity, and 23 only repeated themselves
+- 20,274 records (99.9%) went through the signed path. That means they carry a nonce; the feed does not hand back the signature, so no third party can re-verify any of them
 - busiest minute: 2026-08-25 12:22Z UTC with 1,176 records, 48.1% of them shared-template
 
 Most repeated templates in the window:
