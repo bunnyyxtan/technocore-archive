@@ -116,6 +116,41 @@
     }, null);
   }
 
+  // Whether capture was still running, judged when the page is read rather than
+  // when it was published. A verdict baked into coverage.json would say
+  // "recording" forever — the page would keep reassuring its reader long after
+  // the recorder died, which is exactly the failure this is here to end. The
+  // publisher ships the room's measured thresholds instead, and the comparison
+  // happens here against the clock of whoever is looking.
+  function captureState(state) {
+    if (!state || !state.lastCaptureAt) return "starting";
+    var age = (Date.now() - new Date(state.lastCaptureAt).getTime()) / 1000;
+    if (!isFinite(age)) return "starting";
+    var stall = state.stallAfterSeconds || 30;
+    if (age >= (state.stopAfterSeconds || stall * 4)) return "stopped";
+    if (age >= stall) return "stalled";
+    return "recording";
+  }
+
+  function worstCaptureState() {
+    var rooms = Object.keys(coverage.rooms);
+    var states = rooms.map(function (room) { return captureState(coverage.rooms[room]); });
+    var order = ["stopped", "stalled", "starting", "recording"];
+    for (var i = 0; i < order.length; i += 1) {
+      if (states.indexOf(order[i]) !== -1) return order[i];
+    }
+    return "starting";
+  }
+
+  function duration(seconds) {
+    var whole = Math.round(seconds || 0);
+    if (whole < 60) return whole + "s";
+    if (whole < 3600) return Math.floor(whole / 60) + "m " + (whole % 60) + "s";
+    var hours = Math.floor(whole / 3600);
+    if (hours < 24) return hours + "h " + Math.floor((whole % 3600) / 60) + "m";
+    return Math.floor(hours / 24) + "d " + (hours % 24) + "h";
+  }
+
   // ------------------------------------------------------------- DID verdict
 
   function resetResult() {
@@ -300,7 +335,12 @@
       var name = el("h3", "room-name", room + " ");
       name.appendChild(el("em", null, num(state.records) + " records held"));
       head.appendChild(name);
-      head.appendChild(el("span", "room-when", "last capture " + formatRefreshStat(state.lastCaptureAt)));
+      var when = el("span", "room-when", "");
+      var verdict = captureState(state);
+      var chip = el("b", verdict === "recording" ? "capture-live" : "capture-off", verdict);
+      when.appendChild(chip);
+      when.appendChild(document.createTextNode(" · last capture " + formatRefreshStat(state.lastCaptureAt)));
+      head.appendChild(when);
       block.appendChild(head);
 
       var span = state.maxSeq || 1;
@@ -352,6 +392,33 @@
         "  ·  lost " + rangeText(state.lostRanges, 4) +
         (state.lostReasons && state.lostReasons.length ? " (" + state.lostReasons.join("; ") + ")" : "")
       ));
+
+      // Time the recorder was not capturing is a hole the sequence rail above
+      // cannot draw: while capture is down the room's head keeps moving and
+      // this archive never learns how far it went, so the interval itself is
+      // the only honest record of it.
+      var outages = state.interruptions || [];
+      if (outages.length) {
+        var box = el("div", "interruptions");
+        var headline = el("p", null, "");
+        headline.appendChild(el("b", null, String(outages.length)));
+        headline.appendChild(document.createTextNode(
+          " capture interruption" + (outages.length === 1 ? "" : "s") + " · "));
+        headline.appendChild(el("b", null, duration(state.unrecordedSeconds)));
+        headline.appendChild(document.createTextNode(" not recorded"));
+        box.appendChild(headline);
+        outages.slice(-4).reverse().forEach(function (outage) {
+          var ended = outage.to ? new Date(outage.to).getTime() : Date.now();
+          var seconds = (ended - new Date(outage.from).getTime()) / 1000;
+          box.appendChild(el("p", null,
+            formatRefreshStat(outage.from) + " → " + (outage.to ? formatRefreshStat(outage.to) : "now") +
+            " · " + duration(seconds) + " · " + outage.reason +
+            (outage.lostFrom != null
+              ? " · seq " + num(outage.lostFrom) + "–" + num(outage.lostTo) + " evicted meanwhile"
+              : "")));
+        });
+        block.appendChild(box);
+      }
 
       host.appendChild(block);
     });
@@ -472,7 +539,10 @@
   function renderHeader() {
     setText("record-count", num(totalRecords()));
     setText("did-count", num(archiveIndex.dids));
-    setText("nav-status", "recording " + Object.keys(coverage.rooms).join(" + "));
+    var verdict = worstCaptureState();
+    setText("nav-status", verdict === "recording"
+      ? "recording " + Object.keys(coverage.rooms).join(" + ")
+      : verdict === "starting" ? "waiting for first capture" : "capture " + verdict);
     setText("snapshot-time", "Last capture: " + formatDateTime(lastCapture()));
     setText("refresh-stat", formatRefreshStat(lastCapture()));
     setText("footer-time", "ARCHIVE PUBLISHED " + formatDateTime(coverage.generatedAt).toUpperCase());
@@ -526,6 +596,31 @@
     });
   }
 
+  // Judging at read time is only half of it: a tab left open through a stall is
+  // read once and then never again, so the verdict it drew at 9am would still
+  // be reassuring its reader at noon. The page re-judges on a ticker against
+  // the current clock, and periodically re-reads the published measurements so
+  // a recovered recorder shows up too. If that re-read fails the last
+  // measurements are kept and simply keep ageing — silence is not evidence of
+  // capture.
+  var RETIME_MS = 5000;
+  var RELOAD_MS = 30000;
+
+  function retimeStatus() {
+    if (!coverage) return;
+    renderHeader();
+    renderCoverage();
+  }
+
+  function reloadCoverage() {
+    return load("coverage.json")
+      .then(function (next) {
+        coverage = next;
+        retimeStatus();
+      })
+      .catch(function () { retimeStatus(); });
+  }
+
   Promise.all([load("did-index.json"), load("coverage.json"), load("flood.json"), load("recent.json")])
     .then(function (data) {
       archiveIndex = data[0];
@@ -542,6 +637,9 @@
       var initialDid = queryDid ? queryDid.trim() : FEATURED_DID;
       input.value = initialDid;
       lookup(initialDid, false);
+
+      window.setInterval(retimeStatus, RETIME_MS);
+      window.setInterval(reloadCoverage, RELOAD_MS);
     })
     .catch(function () {
       setText("nav-status", "archive unavailable");
