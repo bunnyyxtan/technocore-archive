@@ -28,6 +28,9 @@
 //   3. Gaps are recorded, never papered over. If eviction outran us the missing
 //      range is written down as lost, with the reason and the moment we noticed.
 //      An archive that hides its holes is worse than one that admits them.
+//      A stall is one of those holes: when capture falls behind its own measured
+//      cadence the interruption is opened in the state file straight away, and
+//      whatever the ring destroyed meanwhile is attached to it on resume.
 //
 // Store layout, per room:
 //   <dir>/<room>.jsonl        append-only, one compact record per line
@@ -37,8 +40,21 @@
 // is recoverable (the loader drops a trailing unparseable line) whereas a
 // partially rewritten 30 MB JSON document is not.
 
-import { appendFileSync, readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from "node:fs";
-import { tidy, same, toRanges } from "./lib.mjs";
+import { appendFileSync, readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
+import { pathToFileURL } from "node:url";
+import {
+  tidy,
+  same,
+  toRanges,
+  CADENCE_SAMPLES,
+  ageInSeconds,
+  captureCadence,
+  captureState,
+  captureThresholds,
+  openOutage,
+  outageSeconds,
+  outageSummary,
+} from "./lib.mjs";
 
 const BASE = "https://technocore.chat";
 const LIMIT = 200; // the server's maximum, and the whole point: fewer means falling behind
@@ -97,34 +113,47 @@ async function readRoom(room, since, tries = 6) {
 
 // ---------------------------------------------------------------- room follower
 
-class RoomStore {
-  constructor(room) {
+export class RoomStore {
+  // dir and seed are arguments rather than module constants so the load and
+  // resume path can be exercised against a throwaway store on disk. The
+  // recorder itself always passes the run's own directory.
+  constructor(room, dir = DIR, seed = SEED) {
     this.room = room;
-    this.path = `${DIR}${room}.jsonl`;
-    this.statePath = `${DIR}${room}.state.json`;
+    this.dir = dir.endsWith("/") ? dir : `${dir}/`;
+    this.seed = seed;
+    this.path = `${this.dir}${room}.jsonl`;
+    this.statePath = `${this.dir}${room}.state.json`;
     this.held = new Set();
     this.conflicts = [];
     this.lost = [];
     this.cursor = 0;
     this.firstCaptureAt = null;
     this.lastCaptureAt = null;
+    this.lastReadAt = null; // last read the server actually answered, records or not
     this.polls = 0;
     this.captured = 0;
     this.behind = 0; // batches that came back full: proof we were not keeping up
     this.rate = 0; // records/second, smoothed — drives the poll pacing
-    this.lastPollAt = 0;
+    this.ratedAt = 0;
     this.records = new Map(); // seq -> record, for conflict detection
+    // seconds between consecutive captures — the room's own heartbeat, and the
+    // only thing allowed to decide how long silence may last before it counts
+    // as a stall. An interval measured across a known interruption is never
+    // added: that is the outage's length, not the room's cadence.
+    this.captureIntervals = [];
+    this.outages = []; // interruption ledger, alongside this.lost
+    this.captureState = "starting";
   }
 
   load() {
-    mkdirSync(DIR, { recursive: true });
+    mkdirSync(this.dir, { recursive: true });
 
     // seed the technocore store from the committed genesis snapshot, so the
     // store is the single complete source and 1..337 are known-held rather than
     // known-lost. the seed is only ever used to create the store, never to
     // overwrite records already captured.
-    if (!existsSync(this.path) && this.room === "technocore" && existsSync(SEED)) {
-      const seeded = JSON.parse(readFileSync(SEED, "utf8")).messages ?? [];
+    if (!existsSync(this.path) && this.room === "technocore" && this.seed && existsSync(this.seed)) {
+      const seeded = JSON.parse(readFileSync(this.seed, "utf8")).messages ?? [];
       if (seeded.length) {
         appendFileSync(this.path, seeded.map(line).join("\n") + "\n");
         console.log(`${this.room}: seeded ${seeded.length} genesis records from latest.json`);
@@ -153,6 +182,14 @@ class RoomStore {
       this.lost = state.lost ?? [];
       this.conflicts = state.conflicts ?? [];
       this.firstCaptureAt = state.firstCaptureAt ?? null;
+      // Restored, not reset. The moment of the last capture before this process
+      // existed is the only evidence of how long the archive was unattended, and
+      // the cadence measured before the restart is the only thing that can say
+      // whether that silence was normal for this room.
+      this.lastCaptureAt = state.lastCaptureAt ?? null;
+      this.lastReadAt = state.lastReadAt ?? null;
+      this.captureIntervals = state.captureIntervals ?? [];
+      this.outages = state.outages ?? [];
     }
 
     // resume from the highest sequence actually on disk, never from the saved
@@ -178,6 +215,73 @@ class RoomStore {
     // intervals instead of a running tally that would exaggerate the loss.
     if (last && last.reason === reason && from <= last.to + 1) last.to = Math.max(last.to, to);
     else this.lost.push({ from, to, reason, noticedAt: now() });
+
+    // If capture is interrupted right now, this is the ring destroying records
+    // while nobody was there to take them. Name the same hole on the
+    // interruption, so the two ledgers cannot tell different stories about it.
+    const open = openOutage(this.outages);
+    if (open) {
+      open.lostFrom = open.lostFrom == null ? from : Math.min(open.lostFrom, from);
+      open.lostTo = open.lostTo == null ? to : Math.max(open.lostTo, to);
+    }
+  }
+
+  // The measured heartbeat, and the ages at which silence stops being normal.
+  cadence() {
+    return captureCadence(this.captureIntervals);
+  }
+
+  liveness(atIso = now()) {
+    const cadence = this.cadence();
+    const age = ageInSeconds(this.lastCaptureAt, atIso);
+    return {
+      at: atIso,
+      captureAgeSeconds: age,
+      readAgeSeconds: ageInSeconds(this.lastReadAt, atIso),
+      state: captureState(age, cadence),
+      cadence,
+      ...captureThresholds(cadence),
+      ...outageSummary(this.outages, atIso),
+    };
+  }
+
+  // Judge capture against its own cadence and write the verdict down. Called on
+  // the flush tick and once at startup: a recorder that died and came back has
+  // to admit the silence it slept through, not quietly resume as if the archive
+  // had been complete the whole time.
+  watch(atIso = now(), startupReason = null) {
+    const view = this.liveness(atIso);
+    const changed = view.state !== this.captureState;
+    this.captureState = view.state;
+    if (view.state === "recording" || view.state === "starting") return view;
+
+    const open = openOutage(this.outages);
+    if (!open) {
+      // Reads and captures fail apart. A room we cannot read is our outage; a
+      // room that answers and has nothing new is the room's own quiet, and
+      // saying so is the difference between an honest ledger and a scare.
+      const unreachable =
+        view.readAgeSeconds == null || view.readAgeSeconds >= view.stallAfterSeconds;
+      const reason = startupReason
+        ?? (unreachable ? "the room could not be read" : "the room served no new records");
+      this.outages.push({
+        from: this.lastCaptureAt,
+        to: null,
+        reason,
+        noticedAt: atIso,
+        lostFrom: null,
+        lostTo: null,
+      });
+      console.error(
+        `${this.room}: capture ${view.state} — ${reason}; last record ${Math.round(view.captureAgeSeconds)}s ago, ` +
+        `expected within ${view.stallAfterSeconds}s`,
+      );
+    } else if (changed) {
+      console.error(`${this.room}: capture ${view.state} — ${Math.round(view.captureAgeSeconds)}s since the last record`);
+    }
+    // re-read, so the returned view accounts for the entry just opened rather
+    // than the ledger as it stood a moment before the stall was noticed
+    return this.liveness(atIso);
   }
 
   absorb(messages) {
@@ -198,15 +302,45 @@ class RoomStore {
       // one append per batch, so a kill can only ever tear the last line
       appendFileSync(this.path, fresh.map((m) => JSON.stringify(m)).join("\n") + "\n");
       this.captured += fresh.length;
-      this.lastCaptureAt = now();
-      this.firstCaptureAt ??= this.lastCaptureAt;
+      this.noteCapture(now());
     }
     return fresh.length;
+  }
+
+  // Every capture is one beat of the room's heartbeat, and the end of any
+  // interruption that was still open.
+  noteCapture(atIso) {
+    const open = openOutage(this.outages);
+    if (open) {
+      open.to = atIso;
+      const lost = open.lostFrom == null
+        ? "no sequence proved lost"
+        : `seq ${open.lostFrom}..${open.lostTo} gone from the ring`;
+      console.log(
+        `${this.room}: capture resumed after ${Math.round(outageSeconds(open, atIso))}s (${open.reason}) — ${lost}`,
+      );
+    } else if (this.lastCaptureAt) {
+      // Only intervals from uninterrupted running describe the room. Measuring
+      // one across an outage would teach the detector that the outage was normal
+      // and blind it to the next one.
+      const gap = ageInSeconds(this.lastCaptureAt, atIso);
+      if (gap != null) {
+        this.captureIntervals.push(gap);
+        if (this.captureIntervals.length > CADENCE_SAMPLES * 2) {
+          this.captureIntervals = this.captureIntervals.slice(-CADENCE_SAMPLES);
+        }
+      }
+    }
+    this.lastCaptureAt = atIso;
+    this.firstCaptureAt ??= atIso;
+    this.captureState = "recording";
   }
 
   flush() {
     const held = toRanges(this.held);
     const maxSeq = this.cursor;
+    const at = now();
+    const view = this.liveness(at);
     const state = {
       room: this.room,
       cursor: this.cursor,
@@ -217,10 +351,23 @@ class RoomStore {
       lostRecords: this.lost.reduce((n, g) => n + (g.to - g.from + 1), 0),
       firstCaptureAt: this.firstCaptureAt,
       lastCaptureAt: this.lastCaptureAt,
+      lastReadAt: this.lastReadAt,
+      // The verdict and the measurements behind it, so a reader of the store
+      // can re-derive it rather than take it on trust.
+      captureState: view.state,
+      heartbeatSeconds: view.cadence.heartbeatSeconds,
+      jitterSeconds: view.cadence.jitterSeconds,
+      cadenceSamples: view.cadence.samples,
+      stallAfterSeconds: view.stallAfterSeconds,
+      stopAfterSeconds: view.stopAfterSeconds,
+      stallThresholdDerived: view.derivedFromRoom,
+      outages: this.outages,
+      unrecordedSeconds: view.unrecordedSeconds,
+      captureIntervals: this.captureIntervals.slice(-CADENCE_SAMPLES),
       polls: this.polls,
       fullBatches: this.behind,
       conflicts: this.conflicts,
-      updatedAt: now(),
+      updatedAt: at,
     };
     const temp = `${this.statePath}.tmp`;
     writeFileSync(temp, JSON.stringify(state, null, 1) + "\n");
@@ -238,6 +385,10 @@ class RoomStore {
 async function step(store) {
   const body = await readRoom(store.room, store.cursor);
   store.polls += 1;
+  // The server answered. Remembering that separately from the last capture is
+  // what lets the stall report say whether we lost the room or the room simply
+  // went quiet — two very different holes in coverage.
+  store.lastReadAt = now();
   // sort defensively: every ordering assumption below is about sequence order,
   // not about the order the server happened to serialise them in
   const messages = (body.messages ?? []).slice().sort((a, b) => a.seq - b.seq);
@@ -273,14 +424,14 @@ async function step(store) {
   // track what the room is actually doing, smoothed, so one quiet or one busy
   // poll cannot swing the pacing
   const at = Date.now();
-  if (store.lastPollAt) {
-    const elapsed = (at - store.lastPollAt) / 1000;
+  if (store.ratedAt) {
+    const elapsed = (at - store.ratedAt) / 1000;
     if (elapsed >= 0.2) {
       const observed = messages.length / elapsed;
       store.rate = store.rate ? store.rate * 0.7 + observed * 0.3 : observed;
     }
   }
-  store.lastPollAt = at;
+  store.ratedAt = at;
 
   if (messages.length >= LIMIT) {
     // the answer was capped, so there was more than it would give: we are behind
@@ -315,22 +466,18 @@ async function follow(store, until) {
 // and corrupt the archive, and a workflow restart makes that easy to cause by
 // accident. Take a pidfile lock; a stale one from a killed process is fine to
 // steal, a live one is not.
-import { unlinkSync as unlinkLock } from "node:fs";
-
-mkdirSync(DIR, { recursive: true });
-const LOCK = `${DIR}recorder.pid`;
-
+//
 // Exclusive create, not exists-then-write: two recorders started in the same
 // instant would both pass an existence check and then interleave their batches
 // into one append-only store. Only the loser of an atomic create looks at the
 // lock at all, and it may take it only if the pid behind it is gone.
-function claimLock(alreadyCleared) {
+function claimLock(lock, alreadyCleared = false) {
   try {
-    writeFileSync(LOCK, String(process.pid), { flag: "wx" });
+    writeFileSync(lock, String(process.pid), { flag: "wx" });
     return true;
   } catch (error) {
     if (error.code !== "EEXIST" || alreadyCleared) return false;
-    const held = Number(readFileSync(LOCK, "utf8").trim());
+    const held = Number(readFileSync(lock, "utf8").trim());
     let alive = false;
     try {
       process.kill(held, 0);
@@ -341,45 +488,74 @@ function claimLock(alreadyCleared) {
     if (alive) return false;
     console.log(`clearing a stale lock from pid ${held}`);
     try {
-      unlinkLock(LOCK);
+      unlinkSync(lock);
     } catch {
       // someone else cleared it first — the retry below decides who wins
     }
-    return claimLock(true);
+    return claimLock(lock, true);
   }
 }
 
-if (!claimLock(false)) {
-  console.error(`another recorder holds ${LOCK} — refusing to double-append to ${DIR}`);
-  process.exit(1);
-}
+async function main() {
+  mkdirSync(DIR, { recursive: true });
+  const LOCK = `${DIR}recorder.pid`;
 
-const stores = ROOMS.map((room) => new RoomStore(room));
-for (const store of stores) store.load();
+  if (!claimLock(LOCK)) {
+    console.error(`another recorder holds ${LOCK} — refusing to double-append to ${DIR}`);
+    process.exit(1);
+  }
 
-const until = MINUTES > 0 ? Date.now() + MINUTES * 60000 : Number.MAX_SAFE_INTEGER;
-let stopping = false;
-
-function shutdown(signal) {
-  if (stopping) return;
-  stopping = true;
-  console.log(`\n${signal}: flushing state`);
-  for (const store of stores) store.flush();
+  const stores = ROOMS.map((room) => new RoomStore(room));
   for (const store of stores) {
-    console.log(`${store.room}: ${store.held.size} held, +${store.captured} this run, ${store.polls} polls, ` +
-      `${store.behind} full batches, ${store.lost.reduce((n, g) => n + (g.to - g.from + 1), 0)} lost to eviction`);
+    store.load();
+    // Before capturing a single new record, account for the silence this
+    // process slept through. Whatever killed the last recorder, the rooms kept
+    // moving, and starting up clean would quietly certify coverage we never had.
+    store.watch(now(), "the recorder was not running");
   }
-  process.exit(0);
+
+  const until = MINUTES > 0 ? Date.now() + MINUTES * 60000 : Number.MAX_SAFE_INTEGER;
+  let stopping = false;
+
+  function shutdown(signal) {
+    if (stopping) return;
+    stopping = true;
+    console.log(`\n${signal}: flushing state`);
+    for (const store of stores) store.flush();
+    for (const store of stores) {
+      const view = store.liveness();
+      console.log(`${store.room}: ${store.held.size} held, +${store.captured} this run, ${store.polls} polls, ` +
+        `${store.behind} full batches, ${store.lost.reduce((n, g) => n + (g.to - g.from + 1), 0)} lost to eviction, ` +
+        `${view.interruptions} interruptions totalling ${Math.round(view.unrecordedSeconds)}s unrecorded`);
+    }
+    process.exit(0);
+  }
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+  // The heartbeat. Every tick re-judges capture against the cadence each room
+  // has actually been running at, so a stall is on the record within a tick or
+  // two rather than whenever someone next reads the log.
+  const ticker = setInterval(() => {
+    const at = now();
+    const views = stores.map((store) => store.watch(at));
+    for (const store of stores) store.flush();
+    const summary = stores.map((s, i) => {
+      const view = views[i];
+      const mark = view.state === "recording" ? "" : ` ${view.state.toUpperCase()} ${Math.round(view.captureAgeSeconds ?? 0)}s`;
+      return `${s.room} seq ${s.cursor} (+${s.captured})${mark}`;
+    }).join("  |  ");
+    console.log(`${at}  ${summary}`);
+  }, 15000);
+
+  await Promise.all(stores.map((store) => follow(store, until)));
+  clearInterval(ticker);
+  shutdown("window complete");
 }
-process.on("SIGINT", () => shutdown("SIGINT"));
-process.on("SIGTERM", () => shutdown("SIGTERM"));
 
-const ticker = setInterval(() => {
-  for (const store of stores) store.flush();
-  const summary = stores.map((s) => `${s.room} seq ${s.cursor} (+${s.captured})`).join("  |  ");
-  console.log(`${now()}  ${summary}`);
-}, 15000);
-
-await Promise.all(stores.map((store) => follow(store, until)));
-clearInterval(ticker);
-shutdown("window complete");
+// Only a direct run follows the rooms. Importing this file has to be inert —
+// test.mjs loads RoomStore to replay the resume path against a throwaway store,
+// and a claimed lock or a live poll loop would make that untestable.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

@@ -48,6 +48,148 @@ export function missingRanges(held, maxSeq) {
 
 export const countRanges = (ranges) => ranges.reduce((n, [a, b]) => n + (b - a + 1), 0);
 
+// ------------------------------------------------------------ capture liveness
+//
+// A dead recorder used to be invisible. The archive kept serving its last known
+// state, the page kept saying "recording", and the only evidence that capture
+// had stopped was a human reading the workflow log. Because the rooms are ring
+// buffers, every minute of that silence is permanent loss, so the archive has
+// to be able to say "I am not recording" on its own.
+//
+// The hard part is the threshold. Ten seconds of silence is a catastrophe in
+// lobby, which replaces its entire 200-record read window in about nine
+// seconds, and completely unremarkable in a room that posts twice an hour. A
+// number typed in here would be wrong for one of them, and would go on being
+// wrong as the rooms change hour to hour. So the threshold comes from the
+// intervals capture has actually been running at — the room's own heartbeat,
+// measured, not assumed.
+
+// How many recent intervals decide the cadence. Bounded, so the verdict follows
+// the room as it speeds up and slows down, and so no pass here grows with the
+// archive.
+export const CADENCE_SAMPLES = 120;
+
+// The one number here that does not come from the room: a floor under the stall
+// threshold. It is a promise about how quickly this archive is willing to cry
+// wolf — a single slow response in a room capturing three times a second must
+// not raise an alarm — and never an assumption about how fast a room runs. It
+// only ever makes the detector wait longer, never fire sooner.
+export const MIN_STALL_SECONDS = 30;
+
+// Stalled means capture has missed its beat by a wide margin. Stopped means it
+// is not coming back on its own. Keeping them apart is what separates a hiccup
+// worth watching from an outage worth acting on.
+export const STOP_MULTIPLE = 4;
+
+const round = (value) => Math.round(value * 10) / 10;
+
+export function quantile(sorted, q) {
+  if (!sorted.length) return 0;
+  const at = (sorted.length - 1) * q;
+  const low = Math.floor(at);
+  const high = Math.ceil(at);
+  if (low === high) return sorted[low];
+  return sorted[low] + (sorted[high] - sorted[low]) * (at - low);
+}
+
+// intervals: seconds between consecutive captures, oldest first.
+export function captureCadence(intervals) {
+  const usable = [];
+  for (const value of intervals ?? []) {
+    if (Number.isFinite(value) && value >= 0) usable.push(value);
+  }
+  const recent = usable.slice(-CADENCE_SAMPLES);
+  const sorted = recent.slice().sort((a, b) => a - b);
+  return {
+    samples: recent.length,
+    // Median, not mean. An interruption sits in this list as one enormous
+    // interval, and a mean would let the outage raise the threshold until the
+    // next one could never be noticed. The median shrugs it off.
+    heartbeatSeconds: round(quantile(sorted, 0.5)),
+    // The slowest beat that is still normal for this room, so ordinary jitter
+    // is never reported as a stall.
+    jitterSeconds: round(quantile(sorted, 0.95)),
+  };
+}
+
+// Turn a measured cadence into the two ages at which silence stops being normal.
+export function captureThresholds(cadence) {
+  const samples = cadence?.samples ?? 0;
+  const heartbeat = samples >= 2 ? cadence.heartbeatSeconds : 0;
+  const jitter = samples >= 2 ? cadence.jitterSeconds : 0;
+  // Six normal beats, or three of the room's slowest ordinary beats, whichever
+  // is longer: a steady room is judged on its heartbeat, a bursty one on its
+  // jitter, and neither is judged on a guess.
+  const observed = Math.max(heartbeat * 6, jitter * 3);
+  const stallAfterSeconds = round(Math.max(observed, MIN_STALL_SECONDS));
+  return {
+    stallAfterSeconds,
+    stopAfterSeconds: round(stallAfterSeconds * STOP_MULTIPLE),
+    // false means the room has not shown enough of itself yet and the floor is
+    // doing the work. Published, so nobody has to guess which one answered.
+    derivedFromRoom: observed > MIN_STALL_SECONDS,
+  };
+}
+
+// The verdict, from the age of the newest captured record. "starting" is only
+// ever the answer before the first record of all: once a room has captured
+// once, silence is measured, never excused.
+export function captureState(ageSeconds, cadence) {
+  if (ageSeconds == null || !Number.isFinite(ageSeconds)) return "starting";
+  const { stallAfterSeconds, stopAfterSeconds } = captureThresholds(cadence);
+  if (ageSeconds >= stopAfterSeconds) return "stopped";
+  if (ageSeconds >= stallAfterSeconds) return "stalled";
+  return "recording";
+}
+
+export const ageInSeconds = (fromIso, atIso) => {
+  if (!fromIso) return null;
+  const from = Date.parse(fromIso);
+  const at = atIso ? Date.parse(atIso) : Date.now();
+  if (!Number.isFinite(from) || !Number.isFinite(at)) return null;
+  return Math.max(0, (at - from) / 1000);
+};
+
+// ------------------------------------------------------------- the interruption ledger
+//
+// An interruption is a hole in coverage exactly like an evicted range is, and
+// it belongs in the same accounting. Held sequences alone cannot express it:
+// while capture is down the room's head keeps moving and this archive has no
+// way to know how far, so the honest record is the interval itself, plus
+// whichever sequences the ring turned out to have destroyed by the time we came
+// back. An open entry — to: null — says capture is down right now.
+
+// the newest entry, if it is still open
+export function openOutage(outages) {
+  const last = (outages ?? [])[(outages ?? []).length - 1];
+  return last && !last.to ? last : null;
+}
+
+export function outageSeconds(outage, atIso) {
+  if (!outage) return 0;
+  return ageInSeconds(outage.from, outage.to ?? atIso) ?? 0;
+}
+
+export function outageSummary(outages, atIso) {
+  const list = outages ?? [];
+  let unrecordedSeconds = 0;
+  let longestSeconds = 0;
+  for (const outage of list) {
+    const seconds = outageSeconds(outage, atIso);
+    unrecordedSeconds += seconds;
+    if (seconds > longestSeconds) longestSeconds = seconds;
+  }
+  const open = openOutage(list);
+  return {
+    interruptions: list.length,
+    interrupted: Boolean(open),
+    since: open ? open.from : null,
+    reason: open ? open.reason : null,
+    unrecordedSeconds: round(unrecordedSeconds),
+    longestSeconds: round(longestSeconds),
+  };
+}
+
 // ------------------------------------------------------------- normalisation
 
 // Two ways of asking "is this the same post again", reported side by side.

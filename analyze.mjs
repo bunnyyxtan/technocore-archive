@@ -23,7 +23,20 @@
 
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from "node:fs";
 import { gzipSync } from "node:zlib";
-import { toRanges, missingRanges, countRanges, measure, buildIndex, METHOD, SHARDS, shardOf, shardName } from "./lib.mjs";
+import {
+  toRanges,
+  missingRanges,
+  countRanges,
+  measure,
+  buildIndex,
+  METHOD,
+  SHARDS,
+  shardOf,
+  shardName,
+  captureCadence,
+  captureThresholds,
+  outageSummary,
+} from "./lib.mjs";
 
 function flag(name, fallback = null) {
   const at = process.argv.indexOf(name);
@@ -96,6 +109,22 @@ for (const room of ROOMS) {
     if (lostRanges.some(([from, to]) => note.from <= to && note.to >= from)) reasons.add(note.reason);
   }
 
+  // An interruption is a hole in coverage that held sequences cannot express:
+  // while capture was down the room's head kept moving and we never learned how
+  // far. Publishing the intervals keeps that admission in the same file as the
+  // sequence accounting instead of leaving it in a workflow log.
+  const outages = state.outages ?? [];
+  const interruption = outageSummary(outages, coverage.generatedAt);
+  for (const outage of outages) if (outage.reason) reasons.add(outage.reason);
+
+  // The cadence and thresholds travel with the data, and the verdict does not.
+  // A published "recording" would be frozen at the moment this ran and would go
+  // on reassuring readers long after capture died — which is the exact failure
+  // this accounting exists to end. Readers judge freshness themselves, against
+  // the room's own measured heartbeat.
+  const cadence = captureCadence(state.captureIntervals ?? []);
+  const thresholds = captureThresholds(cadence);
+
   coverage.rooms[room] = {
     records: records.length,
     heldRanges: held,
@@ -106,6 +135,16 @@ for (const room of ROOMS) {
     maxSeq,
     firstCaptureAt: state.firstCaptureAt ?? null,
     lastCaptureAt: state.lastCaptureAt ?? null,
+    lastReadAt: state.lastReadAt ?? null,
+    heartbeatSeconds: cadence.heartbeatSeconds,
+    jitterSeconds: cadence.jitterSeconds,
+    cadenceSamples: cadence.samples,
+    stallAfterSeconds: thresholds.stallAfterSeconds,
+    stopAfterSeconds: thresholds.stopAfterSeconds,
+    stallThresholdDerived: thresholds.derivedFromRoom,
+    interruptions: outages,
+    interrupted: interruption.interrupted,
+    unrecordedSeconds: interruption.unrecordedSeconds,
     firstTs: records[0].ts,
     lastTs: records[records.length - 1].ts,
     conflicts: (state.conflicts ?? []).length,

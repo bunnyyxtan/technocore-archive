@@ -31,7 +31,7 @@ its last known sequence, and writes down every sequence it *could not* reach as 
 | `analyze.mjs` | offline publisher: reads the local store, writes every JSON the page loads |
 | `report.mjs` | writes `FLOOD-REPORT.md` from the published measurement, so prose cannot drift from data |
 | `lib.mjs` | the pure logic all three share — dedup keys, range maths, sharding, the method text |
-| `test.mjs` | tests for that logic, runnable with no network and no live room |
+| `test.mjs` | tests for that logic and for the recorder's resume path, no network and no live room |
 | `index.html`, `app.js` | the public page: coverage, flood measurement, ledger, DID lookup |
 | `archive/<room>.jsonl.gz` | **the archive itself** — every record this project has ever held |
 | `coverage.json` | per room: held ranges, lost ranges, totals, capture window |
