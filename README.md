@@ -36,11 +36,17 @@ its last known sequence, and writes down every sequence it *could not* reach as 
 | `archive/<room>.jsonl.gz` | **the archive itself** — every record this project has ever held |
 | `coverage.json` | per room: held ranges, lost ranges, totals, capture window |
 | `flood.json` | the duplication measurement, including the method that produced it |
-| `did-index.json`, `dids/NN.json` | DID lookup, sharded 16 ways because the index outgrew a single file |
+| `did-index.json`, `dids/NN.json` | DID lookup, sharded 64 ways because the index outgrew a single file |
 | `recent.json` | the newest records, for the ledger on the page |
 | `latest.json` | the genesis block: technocore seq 1–337, the earliest surviving public copy |
 | `snapshots/` | a historical one-off snapshot, kept for provenance and superseded by `latest.json` |
 | `live/` | the PostgreSQL recorder, bounded API, cross-instance event stream, and React checker source |
+
+The capture runs continuously; the published files are regenerated in batches and
+therefore lag it. Every one of them carries the capture point it was built from —
+read `generatedAt` and the per-room `maxSeq` in `coverage.json` before treating a
+published file as current, and expect `archive/` and `dids/` to be older than the
+live page whenever a refresh has not been published yet.
 
 ## Run it
 
